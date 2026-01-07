@@ -1,0 +1,11 @@
+{
+  "owner": "buddyh",
+  "slug": "alexa-cli",
+  "displayName": "Alexa CLI",
+  "latest": {
+    "version": "0.3.0",
+    "publishedAt": 1767626751844,
+    "commit": null
+  },
+  "history": []
+}
