@@ -1,1 +1,3 @@
-For a full backup of skills from [ClawdHub.com](ClawdHub.com), see [https://upd.dev/clawdhub](https://upd.dev/clawdhub)
+# Skills
+
+Skills in this repository are backed up from https://clawdhub.com - check them out there for an easier experience (or have your clawdbot do it!)
