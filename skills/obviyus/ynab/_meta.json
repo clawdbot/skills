@@ -1,0 +1,11 @@
+{
+  "owner": "obviyus",
+  "slug": "ynab",
+  "displayName": "Manage YNAB budgets, accounts, categories, and transactions.",
+  "latest": {
+    "version": "1.0.0",
+    "publishedAt": 1767591101713,
+    "commit": null
+  },
+  "history": []
+}
