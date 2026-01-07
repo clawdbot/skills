@@ -1,0 +1,11 @@
+{
+  "owner": "joargp",
+  "slug": "news-summary",
+  "displayName": "News Summary",
+  "latest": {
+    "version": "1.0.1",
+    "publishedAt": 1767689990078,
+    "commit": null
+  },
+  "history": []
+}
