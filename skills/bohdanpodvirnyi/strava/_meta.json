@@ -1,0 +1,11 @@
+{
+  "owner": "bohdanpodvirnyi",
+  "slug": "strava",
+  "displayName": "Strava",
+  "latest": {
+    "version": "1.0.0",
+    "publishedAt": 1767711120734,
+    "commit": null
+  },
+  "history": []
+}
