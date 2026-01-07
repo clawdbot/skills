@@ -1,0 +1,11 @@
+{
+  "owner": "steipete",
+  "slug": "openai-whisper-api",
+  "displayName": "Openai Whisper Api",
+  "latest": {
+    "version": "1.0.0",
+    "publishedAt": 1767545368103,
+    "commit": null
+  },
+  "history": []
+}
