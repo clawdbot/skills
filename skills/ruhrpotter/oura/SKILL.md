@@ -5,6 +5,30 @@ This tool allows retrieving health and biometric data from the Oura Ring API (V2
 
 Repository: [https://github.com/ruhrpotter/oura-cli](https://github.com/ruhrpotter/oura-cli)
 
+## Installation
+
+### 1. Build the CLI
+```bash
+cd ~
+git clone https://github.com/ruhrpotter/oura-cli.git
+cd oura-cli
+go build -o oura ./cmd/oura
+```
+
+### 2. Create Oura OAuth App
+1. Go to [Oura Developer Portal](https://cloud.ouraring.com/oauth/developer)
+2. Create a new application
+3. Set Redirect URI to: `http://localhost:8080/callback`
+4. Note down your **Client ID** and **Client Secret**
+
+### 3. Authenticate
+```bash
+export OURA_CLIENT_ID="your_client_id"
+export OURA_CLIENT_SECRET="your_client_secret"
+./oura auth login
+```
+
+A browser will open for OAuth authorization. Tokens are stored in `~/.config/oura-cli/config.json`.
 
 ## Prerequisite
 The CLI must be authenticated. If a command fails with an auth error, notify the user to run `./oura auth login`.
