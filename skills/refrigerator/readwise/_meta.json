@@ -1,0 +1,11 @@
+{
+  "owner": "refrigerator",
+  "slug": "readwise",
+  "displayName": "Readwise & Reader",
+  "latest": {
+    "version": "1.0.0",
+    "publishedAt": 1767874117110,
+    "commit": null
+  },
+  "history": []
+}
