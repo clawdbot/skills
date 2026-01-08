@@ -1,0 +1,11 @@
+{
+  "owner": "dbhurley",
+  "slug": "flights",
+  "displayName": "Flight Tracker",
+  "latest": {
+    "version": "1.0.0",
+    "publishedAt": 1767898803246,
+    "commit": null
+  },
+  "history": []
+}
