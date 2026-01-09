@@ -1,0 +1,11 @@
+{
+  "owner": "mjrussell",
+  "slug": "steam",
+  "displayName": "Steam Games CLI",
+  "latest": {
+    "version": "0.4.0",
+    "publishedAt": 1767918634480,
+    "commit": null
+  },
+  "history": []
+}
