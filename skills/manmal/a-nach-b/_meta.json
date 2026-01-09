@@ -1,0 +1,11 @@
+{
+  "owner": "manmal",
+  "slug": "a-nach-b",
+  "displayName": "A nach B - AT Public Transport Service (VOR)",
+  "latest": {
+    "version": "1.0.0",
+    "publishedAt": 1767917009834,
+    "commit": null
+  },
+  "history": []
+}
