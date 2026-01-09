@@ -9,6 +9,7 @@ Use this file to find component-specific guidance. Each entry lists when to use 
 - Sheets and modal routing: `references/sheets.md` — Use when you want centralized, enum-driven sheet presentation.
 - App wiring and dependency graph: `references/app-wiring.md` — Use to wire TabView + NavigationStack + sheets at the root and install global dependencies.
 - Form and Settings: `references/form.md` — Use for settings, grouped inputs, and structured data entry.
+- macOS Settings: `references/macos-settings.md` — Use when building a macOS Settings window with SwiftUI's Settings scene.
 - Split views and columns: `references/split-views.md` — Use for iPad/macOS multi-column layouts or custom secondary columns.
 - List and Section: `references/list.md` — Use for feed-style content and settings rows.
 - ScrollView and Lazy stacks: `references/scrollview.md` — Use for custom layouts, horizontal scrollers, or grids.
@@ -25,6 +26,7 @@ Use this file to find component-specific guidance. Each entry lists when to use 
 - Matched transitions: `references/matched-transitions.md` — Use for smooth source-to-destination animations.
 - Deep links and URL routing: `references/deeplinks.md` — Use for in-app navigation from URLs.
 - Title menus: `references/title-menus.md` — Use for filter or context menus in the navigation title.
+- Menu bar commands: `references/menu-bar.md` — Use when adding or customizing macOS/iPadOS menu bar commands.
 - Loading & placeholders: `references/loading-placeholders.md` — Use for redacted skeletons, empty states, and loading UX.
 - Lightweight clients: `references/lightweight-clients.md` — Use for small, closure-based API clients injected into stores.
 
