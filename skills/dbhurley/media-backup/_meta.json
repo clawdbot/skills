@@ -1,0 +1,11 @@
+{
+  "owner": "dbhurley",
+  "slug": "media-backup",
+  "displayName": "Media Backup",
+  "latest": {
+    "version": "1.0.0",
+    "publishedAt": 1768003545572,
+    "commit": null
+  },
+  "history": []
+}
