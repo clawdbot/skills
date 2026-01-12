@@ -3,9 +3,15 @@
   "slug": "hevy",
   "displayName": "Hevy",
   "latest": {
-    "version": "0.1.0",
-    "publishedAt": 1767852417956,
-    "commit": "https://github.com/clawdbot/skills/commit/67d2901e4920bc567716a389148f08af5ba3fa76"
+    "version": "0.2.0",
+    "publishedAt": 1768234102649,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "0.1.0",
+      "publishedAt": 1767852417956,
+      "commit": "https://github.com/clawdbot/skills/commit/67d2901e4920bc567716a389148f08af5ba3fa76"
+    }
+  ]
 }

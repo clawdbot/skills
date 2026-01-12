@@ -14,12 +14,6 @@ metadata:
 
 CLI for the Hevy workout tracking API. Query workouts, routines, exercises, and track progress.
 
-## Installation
-
-```bash
-npm install -g hevy-cli
-```
-
 ## Setup
 
 Requires Hevy Pro subscription for API access.
@@ -32,85 +26,200 @@ Requires Hevy Pro subscription for API access.
 ### Status
 
 ```bash
-hevy status                # Check configuration and connection
-hevy status --json
+# Check configuration and connection
+hevy status
 ```
 
 ### Workouts
 
 ```bash
-hevy workouts              # List recent workouts (default 5)
-hevy workouts -n 10        # List 10 recent workouts
-hevy workouts --all        # Fetch all workouts
-hevy workouts --kg         # Show weights in kg (default is lbs)
-hevy workout <id>          # Show detailed workout
-hevy workouts --json       # Output as JSON
+# List recent workouts (default 5)
+hevy workouts
+hevy workouts --limit 10
+
+# Fetch all workouts
+hevy workouts --all
+
+# Show detailed workout
+hevy workout <workout-id>
+
+# JSON output
+hevy workouts --json
+hevy workout <id> --json
+
+# Show weights in kg (default is lbs)
+hevy workouts --kg
 ```
 
 ### Routines
 
 ```bash
-hevy routines              # List all routines
-hevy routine <id>          # Show detailed routine
+# List all routines
+hevy routines
+
+# Show detailed routine
+hevy routine <routine-id>
+
+# JSON output
 hevy routines --json
 ```
 
 ### Exercises
 
 ```bash
-hevy exercises                      # List all exercises
-hevy exercises -s "bench press"     # Search by name
-hevy exercises --muscle chest       # Filter by muscle group
-hevy exercises --custom             # Show only custom exercises
+# List all exercise templates
+hevy exercises
+
+# Search by name
+hevy exercises --search "bench press"
+
+# Filter by muscle group
+hevy exercises --muscle chest
+
+# Show only custom exercises
+hevy exercises --custom
+
+# JSON output
 hevy exercises --json
 ```
 
 ### Exercise History
 
 ```bash
-hevy history <exercise-id>          # Show history for exercise
-hevy history <exercise-id> -n 50    # Limit entries
-hevy history <exercise-id> --json
+# Show history for specific exercise
+hevy history <exercise-template-id>
+hevy history <exercise-template-id> --limit 50
+
+# JSON output
+hevy history <exercise-template-id> --json
 ```
 
-### Stats
+### Creating Routines
 
 ```bash
-hevy count                 # Total workout count
-hevy folders               # List routine folders
+# Create routine from JSON (stdin)
+echo '{"routine": {...}}' | hevy create-routine
+
+# Create routine from file
+hevy create-routine --file routine.json
+
+# Create a routine folder
+hevy create-folder "Push Pull Legs"
+
+# Update existing routine
+echo '{"routine": {...}}' | hevy update-routine <routine-id>
+
+# Create custom exercise (checks for duplicates first!)
+hevy create-exercise --title "My Exercise" --muscle chest --type weight_reps
+
+# Force create even if duplicate exists
+hevy create-exercise --title "My Exercise" --muscle chest --force
+```
+
+**⚠️ Duplicate Prevention:** `create-exercise` checks if an exercise with the same name already exists and will error if found. Use `--force` to create anyway (not recommended).
+
+**Routine JSON format:**
+```json
+{
+  "routine": {
+    "title": "Push Day 💪",
+    "folder_id": null,
+    "notes": "Chest, shoulders, triceps",
+    "exercises": [
+      {
+        "exercise_template_id": "79D0BB3A",
+        "notes": "Focus on form",
+        "rest_seconds": 90,
+        "sets": [
+          { "type": "warmup", "weight_kg": 20, "reps": 15 },
+          { "type": "normal", "weight_kg": 60, "reps": 8 }
+        ]
+      }
+    ]
+  }
+}
+```
+
+### Other
+
+```bash
+# Total workout count
+hevy count
+
+# List routine folders
+hevy folders
 ```
 
 ## Usage Examples
 
-**User: "What did I do at the gym today?"**
+**User asks "What did I do at the gym?"**
 ```bash
-hevy workouts -n 1
+hevy workouts
 ```
 
-**User: "Show me my bench press progress"**
+**User asks "Show me my last chest workout"**
 ```bash
-hevy exercises -s "bench press" --json  # Get exercise ID
-hevy history <exercise-id>              # View history
+hevy workouts --limit 10  # Find relevant workout ID
+hevy workout <id>         # Get details
 ```
 
-**User: "What routines do I have?"**
+**User asks "How am I progressing on bench press?"**
+```bash
+hevy exercises --search "bench press"  # Get exercise template ID
+hevy history <exercise-id>              # View progression
+```
+
+**User asks "What routines do I have?"**
 ```bash
 hevy routines
+hevy routine <id>  # For details
 ```
 
-**User: "How many workouts have I done?"**
-```bash
-hevy count
-```
-
-**User: "Find exercises for legs"**
+**User asks "Find leg exercises"**
 ```bash
 hevy exercises --muscle quadriceps
 hevy exercises --muscle hamstrings
+hevy exercises --muscle glutes
+```
+
+**User asks "Create a push day routine"**
+```bash
+# 1. Find exercise IDs
+hevy exercises --search "bench press"
+hevy exercises --search "shoulder press"
+# 2. Create routine JSON with those IDs and pipe to create-routine
 ```
 
 ## Notes
 
-- Weights default to lbs, use `--kg` for kilograms
-- Exercise IDs are UUIDs shown in detailed views and JSON output
-- API has rate limits; avoid excessive `--all` usage
+- **Duplicate Prevention:** `create-exercise` checks for existing exercises with the same name before creating. Use `--force` to override (not recommended).
+- **API Limitations:** Hevy API does NOT support deleting or editing exercise templates - only creating. Delete exercises manually in the app.
+- **API Rate Limits:** Be mindful when fetching all data (--all flag)
+- **Weights:** Defaults to lbs, use --kg for kilograms
+- **Pagination:** Most commands auto-paginate, but limit flags help reduce API calls
+- **IDs:** Workout/routine/exercise IDs are UUIDs, shown in detailed views
+
+## API Reference
+
+Full API docs: https://api.hevyapp.com/docs/
+
+### Available Endpoints
+- `GET /v1/workouts` - List workouts (paginated)
+- `GET /v1/workouts/{id}` - Get single workout
+- `GET /v1/workouts/count` - Total workout count
+- `GET /v1/routines` - List routines
+- `GET /v1/routines/{id}` - Get single routine
+- `GET /v1/exercise_templates` - List exercises
+- `GET /v1/exercise_templates/{id}` - Get single exercise
+- `GET /v1/exercise_history/{id}` - Exercise history
+- `GET /v1/routine_folders` - List folders
+
+### Write Operations (supported but use carefully)
+- `POST /v1/workouts` - Create workout
+- `PUT /v1/workouts/{id}` - Update workout
+- `POST /v1/routines` - Create routine
+- `PUT /v1/routines/{id}` - Update routine
+- `POST /v1/exercise_templates` - Create custom exercise
+- `POST /v1/routine_folders` - Create folder
+
+The CLI focuses on read operations. Write operations are available via the API client for programmatic use.

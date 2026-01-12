@@ -1,0 +1,25 @@
+{
+  "name": "hevy-cli",
+  "version": "1.0.0",
+  "description": "CLI for Hevy workout tracking API",
+  "type": "module",
+  "main": "dist/index.js",
+  "bin": {
+    "hevy": "./dist/cli.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "start": "node dist/cli.js"
+  },
+  "dependencies": {
+    "commander": "^12.1.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "typescript": "^5.7.0"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
