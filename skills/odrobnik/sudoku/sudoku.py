@@ -49,6 +49,7 @@ from sudoku_fetcher import (  # type: ignore
     decode_puzzle,
     generate_native_link,
     generate_scl_link,
+    generate_fpuzzles_link,
     get_block_dims,
     render_sudoku,
 )
@@ -505,8 +506,7 @@ def cmd_list(args: argparse.Namespace) -> int:
         print(json.dumps({"presets": items}, ensure_ascii=False))
     else:
         for it in items:
-            mode = "letters" if it["letters"] else "numbers"
-            print(f"- {it['preset']}: {it['desc']} ({mode})\n  {it['url']}")
+            print(f"- {it['preset']}: {it['desc']}\n  {it['url']}")
 
     return 0
 
@@ -590,7 +590,7 @@ def cmd_get(args: argparse.Namespace) -> int:
     return 0
 
 
-def cmd_puzzle(args: argparse.Namespace) -> int:
+def cmd_render(args: argparse.Namespace) -> int:
     doc, json_path = load_puzzle_doc(file=args.file, puzzle_id=args.id, latest=args.latest)
 
     if args.pdf:
@@ -605,6 +605,41 @@ def cmd_puzzle(args: argparse.Namespace) -> int:
         print(json.dumps(out, ensure_ascii=False))
     else:
         print(str(list(out.values())[-1]))
+    return 0
+
+
+def cmd_share(args: argparse.Namespace) -> int:
+    doc, json_path = load_puzzle_doc(file=args.file, puzzle_id=args.id, latest=args.latest)
+    
+    clues = doc["clues"]
+    size = int(doc["size"])
+    puzzle_id = str(doc.get("picked", {}).get("id", "unknown"))
+    short_id = puzzle_id.split("-")[0]
+    
+    preset_key = str(doc.get("preset", {}).get("key", ""))
+    difficulty = preset_key.replace("9", "").capitalize() or "Easy"
+    
+    title = f"{difficulty} Classic [{short_id}]"
+    
+    link = None
+    if args.type == "scl":
+        link = generate_scl_link(clues, size, title=title)
+    elif args.type == "fpuzzle":
+        link = generate_fpuzzles_link(clues, size, title=title)
+    else: # sudokupad
+        if size == 9:
+            link = generate_native_link(clues, size, title=title)
+        else:
+            link = generate_native_link(clues, size, title=title)
+            if not link.startswith("http"):
+                 link = generate_scl_link(clues, size, title=title)
+
+    out = {"puzzle_json": str(json_path), "share_link": link, "type": args.type}
+    
+    if args.json:
+        print(json.dumps(out, ensure_ascii=False))
+    else:
+        print(link)
     return 0
 
 
@@ -702,7 +737,8 @@ def build_parser() -> argparse.ArgumentParser:
     sub = p.add_subparsers(dest="cmd", required=True)
 
     p_list = sub.add_parser("list", help="List available presets")
-    p_list.add_argument("--json", action="store_true", help="Machine-readable JSON")
+    p_list.add_argument("--text", dest="json", action="store_false", help="Output text instead of JSON")
+    p_list.set_defaults(json=True)
     p_list.set_defaults(func=cmd_list)
 
     p_get = sub.add_parser("get", help="Fetch a puzzle from a preset and store as JSON")
@@ -711,18 +747,30 @@ def build_parser() -> argparse.ArgumentParser:
     p_get.add_argument("--id", help="Select puzzle by UUID (full UUID from source)")
     p_get.add_argument("--seed", help="Deterministic random selection (string)")
     p_get.add_argument("--render", action="store_true", help="Also render the puzzle image now")
-    p_get.add_argument("--json", action="store_true", help="Machine-readable JSON")
+    p_get.add_argument("--text", dest="json", action="store_false", help="Output text instead of JSON")
+    p_get.set_defaults(json=True)
     p_get.set_defaults(func=cmd_get)
 
-    p_puz = sub.add_parser("puzzle", help="Render puzzle image from stored JSON")
-    g = p_puz.add_mutually_exclusive_group(required=False)
+    p_ren = sub.add_parser("render", help="Render puzzle image from stored JSON")
+    g = p_ren.add_mutually_exclusive_group(required=False)
     g.add_argument("--latest", action="store_true", help="Use latest stored puzzle (default)")
     g.add_argument("--file", help="Path to a stored puzzle JSON")
     g.add_argument("--id", help="Puzzle ID (full UUID or short 8-char ID from filename)")
-    p_puz.add_argument("--printable", action="store_true", help="Include small header (difficulty + short ID) for printout")
-    p_puz.add_argument("--pdf", action="store_true", help="Render as A4 PDF (recommended for printing)")
-    p_puz.add_argument("--json", action="store_true", help="Machine-readable JSON")
-    p_puz.set_defaults(func=cmd_puzzle)
+    p_ren.add_argument("--printable", action="store_true", help="Include small header (difficulty + short ID) for printout")
+    p_ren.add_argument("--pdf", action="store_true", help="Render as A4 PDF (recommended for printing)")
+    p_ren.add_argument("--text", dest="json", action="store_false", help="Output text instead of JSON")
+    p_ren.set_defaults(json=True)
+    p_ren.set_defaults(func=cmd_render)
+
+    p_share = sub.add_parser("share", help="Generate share link")
+    g_share = p_share.add_mutually_exclusive_group(required=False)
+    g_share.add_argument("--latest", action="store_true", help="Use latest stored puzzle (default)")
+    g_share.add_argument("--file", help="Path to a stored puzzle JSON")
+    g_share.add_argument("--id", help="Puzzle ID (full UUID or short 8-char ID from filename)")
+    p_share.add_argument("--type", choices=["sudokupad", "fpuzzle", "scl"], default="sudokupad", help="Link type")
+    p_share.add_argument("--text", dest="json", action="store_false", help="Output text instead of JSON")
+    p_share.set_defaults(json=True)
+    p_share.set_defaults(func=cmd_share)
 
     p_rev = sub.add_parser("reveal", help="Reveal solution from stored JSON (full/box/cell)")
     g2 = p_rev.add_mutually_exclusive_group(required=False)
@@ -738,7 +786,8 @@ def build_parser() -> argparse.ArgumentParser:
     sel.add_argument("--cell", type=int, nargs=2, metavar=("ROW", "COL"), help="Reveal a single cell value: '--cell <row> <col>' (1-based)")
 
     p_rev.add_argument("--image", action="store_true", help="With --cell: also write a tiny 1-cell image")
-    p_rev.add_argument("--json", action="store_true", help="Machine-readable JSON")
+    p_rev.add_argument("--text", dest="json", action="store_false", help="Output text instead of JSON")
+    p_rev.set_defaults(json=True)
     p_rev.set_defaults(func=cmd_reveal)
 
     return p

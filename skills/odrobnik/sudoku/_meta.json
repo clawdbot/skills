@@ -3,9 +3,15 @@
   "slug": "sudoku",
   "displayName": "Sudoku",
   "latest": {
-    "version": "0.1.1",
-    "publishedAt": 1768205089701,
-    "commit": "https://github.com/clawdbot/skills/commit/9c72fb55fc5fc497684efe6b608ec453564b08e5"
+    "version": "0.1.2",
+    "publishedAt": 1768210186743,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "0.1.1",
+      "publishedAt": 1768205089701,
+      "commit": "https://github.com/clawdbot/skills/commit/9c72fb55fc5fc497684efe6b608ec453564b08e5"
+    }
+  ]
 }
