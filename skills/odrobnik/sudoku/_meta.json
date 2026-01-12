@@ -1,0 +1,11 @@
+{
+  "owner": "odrobnik",
+  "slug": "sudoku",
+  "displayName": "Sudoku",
+  "latest": {
+    "version": "0.1.1",
+    "publishedAt": 1768205089701,
+    "commit": null
+  },
+  "history": []
+}
