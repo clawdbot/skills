@@ -58,7 +58,7 @@ find_api_key() {
 ENSUE_API_KEY=$(find_api_key)
 
 if [ -z "$ENSUE_API_KEY" ]; then
-  echo '{"error":"ENSUE_API_KEY not found. Set it or configure in clawdbot.json"}'
+  echo '{"error":"ENSUE_API_KEY not found. Get a free API key at https://www.ensue-network.ai/login then configure it in clawdbot.json under skills.entries.ensue-learning-memory.apiKey or set as ENSUE_API_KEY environment variable."}'
   exit 1
 fi
 
