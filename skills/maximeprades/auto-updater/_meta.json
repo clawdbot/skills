@@ -1,0 +1,11 @@
+{
+  "owner": "maximeprades",
+  "slug": "auto-updater",
+  "displayName": "Auto-Updater Skill",
+  "latest": {
+    "version": "1.0.0",
+    "publishedAt": 1768323539453,
+    "commit": null
+  },
+  "history": []
+}
