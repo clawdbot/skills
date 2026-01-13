@@ -1,7 +1,7 @@
 ---
 name: obsidian-daily
-description: Manage Obsidian Daily Notes via obsidian-cli. Create and open daily notes, append entries (journals, logs, tasks), read past notes by date, and search vault content. Handles relative dates like "yesterday", "last Friday", "3 days ago".
-compatibility: Requires obsidian-cli installed via Homebrew (Mac/Linux)
+description: Manage Obsidian Daily Notes via obsidian-cli. Create and open daily notes, append entries (journals, logs, tasks, links), read past notes by date, and search vault content. Handles relative dates like "yesterday", "last Friday", "3 days ago".
+compatibility: Requires obsidian-cli installed via Homebrew (Mac/Linux) or Scoop (Windows)
 metadata: {"clawdbot":{"requires":{"bins":["obsidian-cli"]},"install":[{"id":"brew","kind":"brew","formula":"yakitrak/yakitrak/obsidian-cli","bins":["obsidian-cli"],"label":"Install obsidian-cli (brew)"}]}}
 ---
 
@@ -63,16 +63,14 @@ Opens today's daily note in Obsidian, creating it from template if it doesn't ex
 
 ### Append Entry
 
-Add a timestamped entry to today's note:
-
 ```bash
-obsidian-cli daily && obsidian-cli create "$(date +%Y-%m-%d).md" --content "$(printf '\n---\n\n**%s**\n\n%s\n' "$(date +%H:%M)" "ENTRY_TEXT")" --append
+obsidian-cli daily && obsidian-cli create "$(date +%Y-%m-%d).md" --content "$(printf '\n%s' "ENTRY_TEXT")" --append
 ```
 
 With custom folder:
 
 ```bash
-obsidian-cli daily && obsidian-cli create "Daily Notes/$(date +%Y-%m-%d).md" --content "$(printf '\n---\n\n**%s**\n\n%s\n' "$(date +%H:%M)" "ENTRY_TEXT")" --append
+obsidian-cli daily && obsidian-cli create "Daily Notes/$(date +%Y-%m-%d).md" --content "$(printf '\n%s' "ENTRY_TEXT")" --append
 ```
 
 ### Read Note
@@ -117,21 +115,35 @@ Add `--vault "NAME"` to any command:
 obsidian-cli print "2025-01-10.md" --vault "Work"
 ```
 
+## Example Output
+
+```markdown
+- Went to the doctor
+- [ ] Buy groceries
+- https://github.com/anthropics/skills
+- 15:45 This is a log line
+```
+
 ## Use Cases
 
 **Journal entry:**
 ```bash
-obsidian-cli daily && obsidian-cli create "$(date +%Y-%m-%d).md" --content "$(printf '\n---\n\n**%s**\n\n%s\n' "$(date +%H:%M)" "Reflected on the team meeting. Good progress on Q1 goals.")" --append
+obsidian-cli daily && obsidian-cli create "$(date +%Y-%m-%d).md" --content "$(printf '\n%s' "- Went to the doctor")" --append
 ```
 
-**Task/To-do:**
+**Task:**
 ```bash
-obsidian-cli daily && obsidian-cli create "$(date +%Y-%m-%d).md" --content "$(printf '\n---\n\n**%s**\n\n%s\n' "$(date +%H:%M)" "- [ ] Review PR #42\n- [ ] Send weekly report")" --append
+obsidian-cli daily && obsidian-cli create "$(date +%Y-%m-%d).md" --content "$(printf '\n%s' "- [ ] Buy groceries")" --append
 ```
 
-**Log/Note:**
+**Link:**
 ```bash
-obsidian-cli daily && obsidian-cli create "$(date +%Y-%m-%d).md" --content "$(printf '\n---\n\n**%s**\n\n%s\n' "$(date +%H:%M)" "Bug found: auth token expiring early. See #123")" --append
+obsidian-cli daily && obsidian-cli create "$(date +%Y-%m-%d).md" --content "$(printf '\n%s' "- https://github.com/anthropics/skills")" --append
+```
+
+**Timestamped log:**
+```bash
+obsidian-cli daily && obsidian-cli create "$(date +%Y-%m-%d).md" --content "$(printf '\n%s' "- $(date +%H:%M) This is a log line")" --append
 ```
 
 **Read last Friday:**
@@ -139,22 +151,7 @@ obsidian-cli daily && obsidian-cli create "$(date +%Y-%m-%d).md" --content "$(pr
 obsidian-cli print "$(date -d 'last friday' +%Y-%m-%d 2>/dev/null || date -v-friday +%Y-%m-%d).md"
 ```
 
-**Find all mentions of "meeting":**
+**Search for "meeting":**
 ```bash
 obsidian-cli search-content "meeting"
 ```
-
-## Entry Format
-
-Each appended entry:
-
-```markdown
----
-
-**HH:MM**
-
-Your content here
-```
-
-The horizontal rule separates entries. Adjust format based on user preference.
-

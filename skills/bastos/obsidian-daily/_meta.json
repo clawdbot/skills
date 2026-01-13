@@ -3,9 +3,15 @@
   "slug": "obsidian-daily",
   "displayName": "Obsidian Daily",
   "latest": {
-    "version": "1.0.0",
-    "publishedAt": 1768264671758,
-    "commit": "https://github.com/clawdbot/skills/commit/e899d78dfc7be38d5cd6b11343ecbe90c98158ec"
+    "version": "1.2.0",
+    "publishedAt": 1768269313036,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "1.0.0",
+      "publishedAt": 1768264671758,
+      "commit": "https://github.com/clawdbot/skills/commit/e899d78dfc7be38d5cd6b11343ecbe90c98158ec"
+    }
+  ]
 }
