@@ -3,9 +3,15 @@
   "slug": "apple-mail-search-safe",
   "displayName": "Apple Mail Search (Fast & Safe)",
   "latest": {
-    "version": "2026.1.5",
-    "publishedAt": 1768508802009,
-    "commit": "https://github.com/clawdbot/skills/commit/3a440c72c154cdd5ded89711200cb7d04a6b81da"
+    "version": "2026.1.6",
+    "publishedAt": 1768516131776,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "2026.1.5",
+      "publishedAt": 1768508802009,
+      "commit": "https://github.com/clawdbot/skills/commit/3a440c72c154cdd5ded89711200cb7d04a6b81da"
+    }
+  ]
 }
