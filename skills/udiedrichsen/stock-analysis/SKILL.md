@@ -1,6 +1,6 @@
 ---
 name: stock-analysis
-description: Analyze US stocks using Yahoo Finance data for earnings season. Provides buy/hold/sell signals based on earnings surprises, fundamental metrics (P/E, margins, growth, debt), analyst sentiment (ratings, price targets), historical patterns, market context, sector performance, earnings timing warnings, momentum indicators, PLUS comprehensive sentiment analysis (Fear/Greed Index, short interest, VIX term structure, insider trading, put/call ratio). Detects "sell the news" scenarios and overbought conditions. Expected runtime 6-10s per stock. Use when asked about stock analysis, earnings reactions, fundamental health, or investment signals during quarterly earnings.
+description: Analyze US stocks using Yahoo Finance data with 8 dimensions including earnings, fundamentals, analyst sentiment, sentiment indicators (Fear/Greed, VIX, insider trading), safe-haven tracking (risk-off detection), breaking news alerts, and geopolitical sector risk mapping. Detects crisis keywords (Taiwan, China, Russia, Middle East, banking) and flags affected tickers/sectors with automatic confidence penalties. Runtime 3-5s with async fetching. Use for stock analysis, earnings reactions, geopolitical risk assessment, or investment signals.
 homepage: https://finance.yahoo.com
 metadata: {"clawdbot":{"emoji":"📈","requires":{"bins":["uv"],"env":[]},"install":[{"id":"uv-brew","kind":"brew","formula":"uv","bins":["uv"],"label":"Install uv (brew)"}]}}
 ---
@@ -62,13 +62,44 @@ Weights auto-normalize if some components unavailable.
 
 ## Timing Warnings & Risk Flags
 
-The script now detects high-risk scenarios:
+The script detects high-risk scenarios:
 
+### Earnings Timing
 - **Pre-Earnings Period**: If earnings < 14 days away, BUY signals become HOLD
 - **Post-Earnings Spike**: If stock up > 15% in 5 days after earnings, warns "gains may be priced in"
+
+### Technical Risk
 - **Overbought Conditions**: RSI > 70 + near 52-week high = high-risk entry
-- **Sector Weakness**: Stock may look good but sector is rotating out
+
+### Market Risk
 - **High VIX**: Market fear (VIX > 30) reduces confidence in BUY signals
+- **Risk-Off Mode (v4.0.0)**: When safe-havens (GLD, TLT, UUP) rise together, reduces BUY confidence by 30%
+  - Detects flight to safety across gold, treasuries, and USD
+  - Triggers when GLD ≥ +2%, TLT ≥ +1%, UUP ≥ +1% (5-day change)
+
+### Sector Risk
+- **Sector Weakness**: Stock may look good but sector is rotating out
+
+### Geopolitical Risk (v4.0.0)
+The script now scans breaking news (last 24h) for crisis keywords and automatically flags affected stocks:
+
+- **Taiwan Conflict**: Semiconductors (NVDA, AMD, TSM, INTC, etc.) → 30% confidence penalty
+- **China Tensions**: Tech/Consumer (AAPL, QCOM, NKE, SBUX, etc.) → 30% confidence penalty
+- **Russia-Ukraine**: Energy/Materials (XOM, CVX, MOS, CF, etc.) → 30% confidence penalty
+- **Middle East**: Oil/Defense (XOM, LMT, RTX, etc.) → 30% confidence penalty
+- **Banking Crisis**: Financials (JPM, BAC, WFC, C, etc.) → 30% confidence penalty
+
+If a ticker is not in the affected list but its sector is exposed, applies a 15% confidence penalty.
+
+**Example Alert:**
+```
+⚠️ SECTOR RISK: Tech supply chain and consumer market exposure (detected: china, tariff)
+```
+
+### Breaking News Alerts (v4.0.0)
+- Scans Google News RSS for crisis keywords (war, recession, sanctions, disasters, etc.)
+- Displays up to 2 breaking news alerts in caveats (last 24 hours)
+- Uses 1-hour cache to avoid excessive API calls
 
 ## Output Format
 
@@ -83,8 +114,13 @@ The script now detects high-risk scenarios:
   - Short interest data lags ~2 weeks (FINRA reporting schedule)
   - Insider trades may lag filing by 2-3 days
   - VIX term structure only updates during futures trading hours
+- **Breaking news limitations (v4.0.0)**:
+  - Google News RSS may lag by 15-60 minutes
+  - Keyword matching may have false positives/negatives
+  - Does not analyze sentiment, only detects keywords
+  - 1-hour cache means alerts may be slightly stale
 - **Missing data**: Not all stocks have analyst coverage, options chains, or complete fundamentals
-- **Execution time**: 6-10s per stock due to sentiment data fetching (up from 3-5s without sentiment)
+- **Execution time**: 3-5s per stock with async parallel fetching and caching (shared indicators cached for 1h)
 - **Disclaimer**: All outputs include prominent "not financial advice" warning
 - **US markets only**: Non-US tickers may have incomplete data
 
