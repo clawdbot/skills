@@ -1,6 +1,6 @@
 ---
 name: roadrunner
-description: Beeper Desktop CLI for chats, messages, search, and reminders. Prefer JSON output for automation.
+description: Beeper Desktop CLI for chats, messages, search, and reminders.
 homepage: https://github.com/johntheyoung/roadrunner
 metadata: {"clawdbot":{"emoji":"🐦💨","requires":{"bins":["rr"]},"install":[{"id":"go","kind":"go","module":"github.com/johntheyoung/roadrunner/cmd/rr@latest","bins":["rr"],"label":"Install rr (go)"}]}}
 ---
@@ -32,6 +32,7 @@ Common commands
 - Reply to message: `rr messages send "!chatid:beeper.com" "Thanks!" --reply-to "<message-id>"`
 - Draft message (pre-fill without sending): `rr focus --chat-id="!chatid:beeper.com" --draft-text="Hello!"`
 - Draft with attachment: `rr focus --chat-id="!chatid:beeper.com" --draft-attachment="/path/to/file.jpg"`
+- Download attachment: `rr assets download "mxc://example.org/abc123" --dest "./attachment.jpg"`
 - Reminders: `rr reminders set "!chatid:beeper.com" "2h"` / `rr reminders clear "!chatid:beeper.com"`
 - Archive chat: `rr chats archive "!chatid:beeper.com"` / `rr chats archive "!chatid:beeper.com" --unarchive`
 - Focus app: `rr focus`
