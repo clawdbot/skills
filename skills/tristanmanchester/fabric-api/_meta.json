@@ -1,0 +1,11 @@
+{
+  "owner": "tristanmanchester",
+  "slug": "fabric-api",
+  "displayName": "Fabric.co API skill",
+  "latest": {
+    "version": "1.0.0",
+    "publishedAt": 1768579176277,
+    "commit": null
+  },
+  "history": []
+}

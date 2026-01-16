@@ -1,0 +1,2634 @@
+openapi: 3.0.3
+info:
+  version: 1.0.0
+  title: Fabric API
+servers:
+  - url: https://api.fabric.so
+    description: Fabric API
+security:
+  - OAuth2: []
+  - ApiKey: []
+paths:
+  /v2/bookmarks:
+    post:
+      tags:
+        - Bookmarks
+      summary: Create bookmark
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                url:
+                  type: string
+                  format: uri
+                tags:
+                  type: array
+                  items:
+                    anyOf:
+                      - type: object
+                        properties:
+                          id:
+                            type: string
+                            pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+                        required:
+                          - id
+                      - type: object
+                        properties:
+                          name:
+                            type: string
+                            maxLength: 255
+                        required:
+                          - name
+                parentId:
+                  anyOf:
+                    - type: string
+                      pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+                    - $ref: '#/components/schemas/RootAlias'
+                  description: Parent resource ID or an alias (the alias is resolved to the actual ID during the request handling).
+                comment:
+                  allOf:
+                    - $ref: '#/components/schemas/CommentCreate'
+                    - nullable: true
+                name:
+                  type: string
+                  nullable: true
+                  minLength: 1
+              required:
+                - url
+                - parentId
+      responses:
+        '201':
+          description: Bookmark created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BookmarkCreationResponse'
+  /v2/resources/{resourceId}/comments:
+    get:
+      tags:
+        - Comments
+      summary: List comments
+      parameters:
+        - schema:
+            type: string
+            pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+          required: true
+          name: resourceId
+          in: path
+        - schema:
+            type: integer
+            minimum: 0
+            exclusiveMinimum: true
+          required: false
+          name: limit
+          in: query
+        - schema:
+            type: integer
+            nullable: true
+            minimum: 0
+          required: false
+          name: offset
+          in: query
+        - schema:
+            type: string
+          required: false
+          name: accessToken
+          in: query
+      responses:
+        '200':
+          description: List of comments
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  count:
+                    type: number
+                    minimum: 0
+                  data:
+                    type: object
+                    properties:
+                      comments:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/CommentWithAuthor'
+                    required:
+                      - comments
+                required:
+                  - count
+                  - data
+        '404':
+          description: Resource not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  title:
+                    type: string
+                    enum:
+                      - Not Found
+                  detail:
+                    type: string
+                    enum:
+                      - resource_not_found
+                required:
+                  - title
+                  - detail
+  /v2/files:
+    post:
+      tags:
+        - Files
+      summary: Create file
+      description: To create a file item you first need to store it using the upload endpoint.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FileCreation'
+      responses:
+        '201':
+          description: File created
+          content:
+            application/json:
+              schema:
+                anyOf:
+                  - $ref: '#/components/schemas/ResourceDetailDocument'
+                  - $ref: '#/components/schemas/ResourceDetailAudio'
+                  - $ref: '#/components/schemas/ResourceDetailVideo'
+                  - $ref: '#/components/schemas/ResourceDetailImage'
+                  - $ref: '#/components/schemas/ResourceDetailDefault'
+  /v2/folders:
+    post:
+      tags:
+        - Folders
+      summary: Create folder
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  nullable: true
+                  minLength: 1
+                  maxLength: 255
+                parentId:
+                  anyOf:
+                    - type: string
+                      pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+                    - $ref: '#/components/schemas/RootAlias'
+                  description: Parent resource ID or an alias (the alias is resolved to the actual ID during the request handling).
+                description:
+                  type: string
+                  nullable: true
+                icon:
+                  oneOf:
+                    - type: object
+                      properties:
+                        type:
+                          type: string
+                          enum:
+                            - emoji
+                        emoji:
+                          type: string
+                          minLength: 1
+                      required:
+                        - type
+                        - emoji
+                    - type: object
+                      properties:
+                        type:
+                          type: string
+                          enum:
+                            - predefined
+                        predefined:
+                          type: string
+                          minLength: 1
+                      required:
+                        - type
+                        - predefined
+                    - type: object
+                      properties:
+                        type:
+                          type: string
+                          enum:
+                            - customImage
+                        customImage:
+                          type: string
+                          minLength: 1
+                      required:
+                        - type
+                        - customImage
+                    - nullable: true
+              required:
+                - parentId
+      responses:
+        '201':
+          description: Folder created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResourceDetailFolder'
+        '404':
+          description: Resource not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  title:
+                    type: string
+                    enum:
+                      - Not Found
+                  detail:
+                    type: string
+                    enum:
+                      - resource_not_found
+                required:
+                  - title
+                  - detail
+  /v2/notepads:
+    post:
+      tags:
+        - Notepads
+      summary: Create notepad
+      requestBody:
+        content:
+          application/json:
+            schema:
+              allOf:
+                - type: object
+                  properties:
+                    name:
+                      type: string
+                      nullable: true
+                      minLength: 1
+                      maxLength: 255
+                    parentId:
+                      anyOf:
+                        - type: string
+                          pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+                        - $ref: '#/components/schemas/RootAlias'
+                      description: Parent resource ID or an alias (the alias is resolved to the actual ID during the request handling).
+                    tags:
+                      type: array
+                      items:
+                        anyOf:
+                          - type: object
+                            properties:
+                              id:
+                                type: string
+                                pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+                            required:
+                              - id
+                          - type: object
+                            properties:
+                              name:
+                                type: string
+                                maxLength: 255
+                            required:
+                              - name
+                    comment:
+                      allOf:
+                        - $ref: '#/components/schemas/CommentCreate'
+                        - nullable: true
+                  required:
+                    - parentId
+                - anyOf:
+                    - type: object
+                      properties:
+                        text:
+                          type: string
+                      required:
+                        - text
+                    - type: object
+                      required:
+                        - ydoc
+      responses:
+        '201':
+          description: Notepad created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResourceDetailNotepad'
+  /v2/resources/{resourceId}:
+    get:
+      tags:
+        - Resources
+      summary: Get resource
+      parameters:
+        - schema:
+            type: string
+            pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+          required: true
+          name: resourceId
+          in: path
+      responses:
+        '200':
+          description: Resource detail
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResourceDetail'
+  /v2/resources/filter:
+    post:
+      tags:
+        - Resources
+      summary: List resources
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                kind:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/Kind'
+                kindExclude:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/Kind'
+                rootId:
+                  type: string
+                  pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+                tagIds:
+                  type: array
+                  items:
+                    type: string
+                    pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+                name:
+                  type: string
+                url:
+                  type: string
+                  format: uri
+                  description: Look up by the URL of a bookmark kind resource.
+                parentId:
+                  type: string
+                  nullable: true
+                  pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+                parentRoot:
+                  type: object
+                  properties:
+                    type:
+                      $ref: '#/components/schemas/RootType'
+                    subtype:
+                      anyOf:
+                        - $ref: '#/components/schemas/IntegrationType'
+                        - $ref: '#/components/schemas/SystemSubtypes'
+                    isPrivate:
+                      type: boolean
+                resourceIds:
+                  type: array
+                  items:
+                    type: string
+                    pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+                label:
+                  type: number
+                  nullable: true
+                  description: Label of the resource - pass null for resources that have no label.
+                shared:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/SharingFilters'
+                rootTypes:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/RootType'
+                includeRoots:
+                  type: boolean
+                  default: false
+                skipInclusions:
+                  type: boolean
+                  default: false
+                createdBefore:
+                  type: string
+                  nullable: true
+                createdAfter:
+                  type: string
+                  nullable: true
+                modifiedBefore:
+                  type: string
+                  nullable: true
+                modifiedAfter:
+                  type: string
+                  nullable: true
+                includeDescendants:
+                  type: integer
+                  maximum: 3
+                  minimum: 0
+                includeSubfolderCount:
+                  type: boolean
+                limit:
+                  type: integer
+                  minimum: 0
+                  exclusiveMinimum: true
+                  default: 20
+                cursor:
+                  type: string
+                random:
+                  type: boolean
+                userIds:
+                  type: array
+                  items:
+                    type: string
+                    pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+                order:
+                  type: object
+                  properties:
+                    property:
+                      type: string
+                      enum:
+                        - createdAt
+                        - createdAt
+                        - modifiedAt
+                        - kind
+                        - name
+                    direction:
+                      type: string
+                      enum:
+                        - ASC
+                        - DESC
+                      default: ASC
+                  required:
+                    - property
+      responses:
+        '200':
+          description: Resource filter results
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResourceFilterResponse'
+  /v2/resource/recover:
+    post:
+      tags:
+        - Resources
+      summary: Recover resources
+      parameters:
+        - schema:
+            type: string
+          required: false
+          name: accessToken
+          in: query
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                resourceIds:
+                  type: array
+                  items:
+                    type: string
+                    pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+                  minItems: 1
+              required:
+                - resourceIds
+      responses:
+        '204':
+          description: Resources recovered
+  /v2/resource/delete:
+    post:
+      tags:
+        - Resources
+      summary: Delete resources
+      parameters:
+        - schema:
+            type: string
+          required: false
+          name: accessToken
+          in: query
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                resourceIds:
+                  type: array
+                  items:
+                    type: string
+                    pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+                  minItems: 1
+                archive:
+                  type: boolean
+                  default: false
+              required:
+                - resourceIds
+      responses:
+        '204':
+          description: Resources deleted
+  /v2/resource-roots/{resourceRootId}:
+    get:
+      tags:
+        - Resource root
+      summary: Get resource root
+      parameters:
+        - schema:
+            type: string
+            pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+          required: true
+          name: resourceRootId
+          in: path
+      responses:
+        '200':
+          description: Root detail
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResourceRootDetail'
+  /v2/resource-roots:
+    get:
+      tags:
+        - Resource root
+      summary: List resource roots
+      parameters:
+        - schema:
+            type: integer
+            minimum: 0
+            exclusiveMinimum: true
+          required: false
+          name: limit
+          in: query
+        - schema:
+            type: integer
+            nullable: true
+            minimum: 0
+          required: false
+          name: offset
+          in: query
+        - schema:
+            type: object
+            properties:
+              property:
+                type: string
+                enum:
+                  - name
+                  - name
+              direction:
+                type: string
+                enum:
+                  - ASC
+                  - DESC
+                default: ASC
+            required:
+              - property
+          required: false
+          name: order
+          in: query
+        - schema:
+            type: array
+            items:
+              type: object
+              properties:
+                type:
+                  $ref: '#/components/schemas/RootType'
+                subtype:
+                  anyOf:
+                    - $ref: '#/components/schemas/IntegrationType'
+                    - $ref: '#/components/schemas/SystemSubtypes'
+          required: false
+          name: types
+          in: query
+        - schema:
+            type: string
+          required: false
+          name: search
+          in: query
+        - schema:
+            type: array
+            items:
+              $ref: '#/components/schemas/PermissionRole'
+            minItems: 1
+          required: false
+          name: role
+          in: query
+        - schema:
+            type: number
+            nullable: true
+            minimum: 0
+            maximum: 10
+          required: false
+          name: includeMembers
+          in: query
+        - schema:
+            type: number
+            nullable: true
+            minimum: 0
+            maximum: 10
+          required: false
+          name: includeResources
+          in: query
+      responses:
+        '200':
+          description: List of roots
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  count:
+                    type: number
+                    minimum: 0
+                  data:
+                    type: object
+                    properties:
+                      roots:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/ResourceRootListItem'
+                      integrations:
+                        type: array
+                        items:
+                          allOf:
+                            - $ref: '#/components/schemas/PublicIntegrationSchema'
+                            - type: object
+                              properties:
+                                mirrorRegistries:
+                                  type: array
+                              required:
+                                - mirrorRegistries
+                      sharedWith:
+                        type: object
+                        additionalProperties:
+                          type: object
+                          properties:
+                            members:
+                              type: array
+                              items:
+                                allOf:
+                                  - $ref: '#/components/schemas/UserProfilePublic'
+                                  - type: object
+                                    properties:
+                                      permission:
+                                        type: object
+                                        properties:
+                                          role:
+                                            $ref: '#/components/schemas/PermissionRole'
+                                        required:
+                                          - role
+                                    required:
+                                      - permission
+                            totalMembers:
+                              type: number
+                          required:
+                            - members
+                            - totalMembers
+                      resources:
+                        type: object
+                        additionalProperties:
+                          type: array
+                          items:
+                            $ref: '#/components/schemas/ResourceDetail'
+                    required:
+                      - roots
+                      - integrations
+                required:
+                  - count
+                  - data
+  /v2/search:
+    post:
+      tags:
+        - Search
+      summary: Search
+      requestBody:
+        content:
+          application/json:
+            schema:
+              allOf:
+                - oneOf:
+                    - type: object
+                      properties:
+                        text:
+                          type: string
+                          maxLength: 255
+                      required:
+                        - mode
+                        - text
+                    - type: object
+                - type: object
+                  properties:
+                    filters:
+                      type: object
+                      properties:
+                        kinds:
+                          type: array
+                          items:
+                            type: string
+                            enum:
+                              - default
+                              - image
+                              - document
+                              - folder
+                              - bookmark
+                              - highlight
+                              - notepad
+                              - video
+                              - audio
+                              - email
+                              - person
+                              - voicenote
+                        color:
+                          type: array
+                          items:
+                            type: number
+                        parentIds:
+                          type: array
+                          items:
+                            type: string
+                            pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+                        ancestorIds:
+                          type: array
+                          items:
+                            type: string
+                            pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+                        rootIds:
+                          type: array
+                          items:
+                            type: string
+                            pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+                        roots:
+                          type: array
+                          items:
+                            type: object
+                            properties:
+                              type:
+                                $ref: '#/components/schemas/RootType'
+                              subtype:
+                                anyOf:
+                                  - $ref: '#/components/schemas/SystemSubtypes'
+                                  - $ref: '#/components/schemas/IntegrationType'
+                              isPrivate:
+                                type: boolean
+                            required:
+                              - type
+                        excludeRoots:
+                          type: array
+                          items:
+                            type: object
+                            properties:
+                              type:
+                                $ref: '#/components/schemas/RootType'
+                              subtype:
+                                anyOf:
+                                  - $ref: '#/components/schemas/SystemSubtypes'
+                                  - $ref: '#/components/schemas/IntegrationType'
+                              isPrivate:
+                                type: boolean
+                            required:
+                              - type
+                        tagIds:
+                          type: array
+                          items:
+                            type: string
+                            pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+                        userIds:
+                          type: array
+                          items:
+                            type: string
+                            pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+                        createdAfter:
+                          type: string
+                          nullable: true
+                        createdBefore:
+                          type: string
+                          nullable: true
+                    precision:
+                      type: number
+                - type: object
+                  properties:
+                    queries:
+                      type: array
+                      items:
+                        allOf:
+                          - oneOf:
+                              - type: object
+                                properties:
+                                  text:
+                                    type: string
+                                    maxLength: 255
+                                required:
+                                  - mode
+                                  - text
+                              - type: object
+                          - type: object
+                            properties:
+                              filters:
+                                type: object
+                                properties:
+                                  kinds:
+                                    type: array
+                                    items:
+                                      type: string
+                                      enum:
+                                        - default
+                                        - image
+                                        - document
+                                        - folder
+                                        - bookmark
+                                        - highlight
+                                        - notepad
+                                        - video
+                                        - audio
+                                        - email
+                                        - person
+                                        - voicenote
+                                  color:
+                                    type: array
+                                    items:
+                                      type: number
+                                  parentIds:
+                                    type: array
+                                    items:
+                                      type: string
+                                      pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+                                  ancestorIds:
+                                    type: array
+                                    items:
+                                      type: string
+                                      pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+                                  rootIds:
+                                    type: array
+                                    items:
+                                      type: string
+                                      pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+                                  roots:
+                                    type: array
+                                    items:
+                                      type: object
+                                      properties:
+                                        type:
+                                          $ref: '#/components/schemas/RootType'
+                                        subtype:
+                                          anyOf:
+                                            - $ref: '#/components/schemas/SystemSubtypes'
+                                            - $ref: '#/components/schemas/IntegrationType'
+                                        isPrivate:
+                                          type: boolean
+                                      required:
+                                        - type
+                                  excludeRoots:
+                                    type: array
+                                    items:
+                                      type: object
+                                      properties:
+                                        type:
+                                          $ref: '#/components/schemas/RootType'
+                                        subtype:
+                                          anyOf:
+                                            - $ref: '#/components/schemas/SystemSubtypes'
+                                            - $ref: '#/components/schemas/IntegrationType'
+                                        isPrivate:
+                                          type: boolean
+                                      required:
+                                        - type
+                                  tagIds:
+                                    type: array
+                                    items:
+                                      type: string
+                                      pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+                                  userIds:
+                                    type: array
+                                    items:
+                                      type: string
+                                      pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+                                  createdAfter:
+                                    type: string
+                                    nullable: true
+                                  createdBefore:
+                                    type: string
+                                    nullable: true
+                              precision:
+                                type: number
+                    incognito:
+                      type: boolean
+                      nullable: true
+                      default: false
+                      description: Does not store search query in search history, if set to true.
+                    pagination:
+                      type: object
+                      properties:
+                        page:
+                          type: integer
+                          minimum: 0
+                          exclusiveMinimum: true
+                          default: 1
+                        pageSize:
+                          type: integer
+                          minimum: 0
+                          exclusiveMinimum: true
+                          default: 20
+                    sort:
+                      type: object
+                      properties:
+                        field:
+                          type: string
+                        order:
+                          type: string
+                          enum:
+                            - asc
+                            - desc
+                          default: asc
+                      required:
+                        - field
+      responses:
+        '200':
+          description: Search results
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  total:
+                    type: number
+                  hasMore:
+                    type: boolean
+                  hits:
+                    type: array
+                    items:
+                      allOf:
+                        - $ref: '#/components/schemas/ResourceDetail'
+                        - type: object
+                          properties:
+                            score:
+                              type: number
+                            embeddings:
+                              type: object
+                              properties:
+                                small3_512:
+                                  type: array
+                                  items:
+                                    type: number
+                                clip2:
+                                  type: array
+                                  items:
+                                    type: number
+                          required:
+                            - score
+                required:
+                  - total
+                  - hasMore
+                  - hits
+  /v2/spaces/{spaceId}:
+    delete:
+      tags:
+        - Spaces
+      summary: Delete space
+      parameters:
+        - schema:
+            type: string
+            pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+          required: true
+          name: spaceId
+          in: path
+      responses:
+        '204':
+          description: Space deleted
+        '404':
+          description: Space not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  title:
+                    type: string
+                    enum:
+                      - Not Found
+                  detail:
+                    type: string
+                    enum:
+                      - space_not_found
+                required:
+                  - title
+                  - detail
+  /v2/spaces:
+    post:
+      tags:
+        - Spaces
+      summary: Create space
+      parameters:
+        - schema:
+            type: string
+          required: false
+          name: accessToken
+          in: query
+      requestBody:
+        content:
+          application/json:
+            schema:
+              anyOf:
+                - type: object
+                  properties:
+                    name:
+                      type: string
+                      nullable: true
+                    private:
+                      type: boolean
+                  required:
+                    - name
+                - type: object
+                  properties:
+                    moveFolderId:
+                      type: string
+                      pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+                  required:
+                    - moveFolderId
+                - type: object
+                  properties:
+                    copyFolderId:
+                      type: string
+                      pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+                    private:
+                      type: boolean
+                  required:
+                    - copyFolderId
+      responses:
+        '201':
+          description: Space created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Space'
+  /v2/subscription:
+    get:
+      tags:
+        - Subscription
+      summary: Get user subscription
+      parameters:
+        - schema:
+            type: array
+            items:
+              $ref: '#/components/schemas/UsageType'
+            minItems: 1
+            description: By default, all usage types are returned
+          required: false
+          name: type
+          in: query
+      responses:
+        '204':
+          description: Subscription information
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkspaceSubscription'
+  /v2/tags:
+    get:
+      tags:
+        - Tags
+      summary: List tags
+      parameters:
+        - schema:
+            type: integer
+            minimum: 0
+            exclusiveMinimum: true
+          required: false
+          name: limit
+          in: query
+        - schema:
+            type: integer
+            nullable: true
+            minimum: 0
+          required: false
+          name: offset
+          in: query
+        - schema:
+            type: string
+            maxLength: 255
+          required: false
+          name: name
+          in: query
+      responses:
+        '200':
+          description: List of tags
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  count:
+                    type: number
+                    minimum: 0
+                  data:
+                    type: object
+                    properties:
+                      tags:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Tag'
+                    required:
+                      - tags
+                required:
+                  - count
+                  - data
+    post:
+      tags:
+        - Tags
+      summary: Create tag
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  maxLength: 255
+                description:
+                  type: string
+                  nullable: true
+                resourceId:
+                  type: string
+                  nullable: true
+                  pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+              required:
+                - name
+      responses:
+        '201':
+          description: Tag created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Tag'
+  /v2/upload:
+    get:
+      tags:
+        - Uploads
+      summary: Get upload URL
+      description: Get a presigned URL for uploading a file.
+      parameters:
+        - schema:
+            type: string
+            pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+            description: ID of the resource that will be overwritten by the uploaded file.
+          required: false
+          description: ID of the resource that will be overwritten by the uploaded file.
+          name: resourceId
+          in: query
+        - schema:
+            type: string
+            minLength: 1
+          required: true
+          name: filename
+          in: query
+        - schema:
+            type: integer
+            nullable: true
+            minimum: 0
+          required: false
+          name: size
+          in: query
+      responses:
+        '200':
+          description: Presigned data for uploading with a PUT request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PresignedResponse'
+  /v2/user/me:
+    get:
+      tags:
+        - User profile
+      summary: My profile
+      responses:
+        '200':
+          description: My profile info
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MineProfile'
+components:
+  securitySchemes:
+    OAuth2:
+      type: oauth2
+      flows:
+        authorizationCode:
+          authorizationUrl: https://fabric.so/oauth2/authorize
+          tokenUrl: /oauth2/token
+          refreshUrl: /oauth2/token
+    ApiKey:
+      type: apiKey
+      in: header
+      name: X-Api-Key
+      description: 'You can generate your API key under settings inside the Fabric app. Important: do not share or publish this key in your client-side code.'
+  schemas:
+    AssistantChat:
+      type: object
+      properties:
+        id:
+          type: string
+          pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+        name:
+          type: string
+          nullable: true
+        isPinned:
+          type: boolean
+        createdAt:
+          type: string
+        modifiedAt:
+          type: string
+      required:
+        - id
+        - isPinned
+        - createdAt
+        - modifiedAt
+    ChatbotModel:
+      type: string
+      nullable: true
+      enum:
+        - dummy
+        - gpt-5-1
+        - gpt-5-1-instant
+        - gpt-4-1
+        - gpt-4o
+        - claude-haiku-4-5
+        - claude-sonnet-4-5
+        - claude-opus-4-5
+        - gemini-2-5-flash
+        - gemini-3-pro
+        - grok-4
+        - openai-o3
+        - gpt-5
+        - claude-sonnet-4-0
+        - claude-opus-4-1
+    ToolStatus:
+      type: string
+      enum:
+        - success
+        - failure
+        - needs_confirmation
+    AssistantMessagePart:
+      oneOf:
+        - type: object
+          properties:
+            type:
+              type: string
+              enum:
+                - text
+            text:
+              type: string
+          required:
+            - type
+            - text
+        - type: object
+          properties:
+            type:
+              type: string
+              enum:
+                - tool
+            name:
+              type: string
+            callId:
+              type: string
+            status:
+              $ref: '#/components/schemas/ToolStatus'
+            args:
+              type: object
+              additionalProperties:
+                nullable: true
+            result:
+              nullable: true
+            error:
+              type: string
+          required:
+            - type
+            - name
+            - callId
+            - status
+            - args
+    AssistantMessageBase:
+      type: object
+      properties:
+        role:
+          type: string
+          enum:
+            - user
+            - assistant
+        parts:
+          type: array
+          nullable: true
+          items:
+            $ref: '#/components/schemas/AssistantMessagePart'
+          minItems: 1
+        content:
+          type: string
+          nullable: true
+          maxLength: 100000
+      required:
+        - role
+    AssistantMessage:
+      allOf:
+        - $ref: '#/components/schemas/AssistantMessageBase'
+        - type: object
+          properties:
+            id:
+              type: string
+              pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+            assistantChatId:
+              type: string
+              pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+            model:
+              $ref: '#/components/schemas/ChatbotModel'
+            context:
+              type: object
+              nullable: true
+              properties:
+                resourceIds:
+                  type: array
+                  items:
+                    type: string
+                    pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+                snippets:
+                  type: array
+                  items:
+                    type: string
+            createdAt:
+              type: string
+            modifiedAt:
+              type: string
+          required:
+            - id
+            - assistantChatId
+            - model
+            - context
+            - createdAt
+            - modifiedAt
+    UserGroup:
+      type: string
+      enum:
+        - admin
+        - fabric-internal
+        - fabric-email
+        - investor
+        - dogfooding
+        - google-drive-beta
+        - beta-user-recap
+        - local-file-sync
+        - notepad-diffs
+    UserProfilePublic:
+      type: object
+      properties:
+        id:
+          type: string
+          pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+        name:
+          type: string
+          nullable: true
+          maxLength: 255
+          pattern: ^[\p{Letter}\p{Emoji_Presentation}\p{Emoji_Modifier}0-9\s\-.']{1,255}$
+        pictureUrlCdn:
+          type: string
+          nullable: true
+          maxLength: 4096
+      required:
+        - id
+    MineProfile:
+      type: object
+      properties:
+        id:
+          type: string
+          pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+        pictureUrlCdn:
+          type: string
+          nullable: true
+          maxLength: 4096
+        name:
+          type: string
+          nullable: true
+          maxLength: 255
+          pattern: ^[\p{Letter}\p{Emoji_Presentation}\p{Emoji_Modifier}0-9\s\-.']{1,255}$
+        email:
+          type: string
+          maxLength: 255
+          format: email
+        authMethod:
+          type: string
+          nullable: true
+          maxLength: 256
+        groups:
+          type: array
+          nullable: true
+          items:
+            $ref: '#/components/schemas/UserGroup'
+        createdAt:
+          type: string
+        modifiedAt:
+          type: string
+        emailIngestionAddress:
+          type: string
+          nullable: true
+          format: email
+      required:
+        - id
+        - email
+        - createdAt
+        - modifiedAt
+        - emailIngestionAddress
+        - onboarding
+    CommentCreate:
+      type: object
+      properties:
+        content:
+          type: string
+          maxLength: 25000
+    CommentWithAuthor:
+      type: object
+      properties:
+        id:
+          type: string
+          pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+        content:
+          type: string
+          maxLength: 25000
+        createdAt:
+          type: string
+        modifiedAt:
+          type: string
+        resourceId:
+          type: string
+          pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+        user:
+          allOf:
+            - $ref: '#/components/schemas/UserProfilePublic'
+            - nullable: true
+        mentionedUsers:
+          type: array
+          items:
+            $ref: '#/components/schemas/UserProfilePublic'
+      required:
+        - id
+        - content
+        - annotation
+        - createdAt
+        - modifiedAt
+        - resourceId
+        - user
+        - mentionedUsers
+    IntegrationType:
+      type: string
+      enum:
+        - GOOGLE_DRIVE
+        - GMAIL
+        - GITHUB
+        - IOS_DEVICE
+        - ANDROID_DEVICE
+        - RSS
+        - NOTION
+        - LOCAL_FS
+        - DROPBOX
+        - ONEDRIVE
+        - MIXPANEL
+        - STRIPE
+    IntegrationStatus:
+      type: string
+      enum:
+        - ACTIVE
+        - HIDDEN
+        - INACTIVE
+    PresignedImage:
+      type: object
+      properties:
+        url:
+          type: string
+        width:
+          type: number
+          nullable: true
+        height:
+          type: number
+          nullable: true
+        mime:
+          type: string
+          nullable: true
+      required:
+        - url
+    ProcessingState:
+      type: string
+      nullable: true
+      enum:
+        - pending
+        - processing
+        - completed
+        - failed
+      description: Status of the link preview
+    EmailMessageMetadataBlock:
+      type: object
+      properties:
+        emailMessage:
+          type: object
+          properties:
+            snippet:
+              type: string
+              nullable: true
+            subject:
+              type: string
+              nullable: true
+            from:
+              type: string
+              nullable: true
+            to:
+              type: string
+              nullable: true
+            body:
+              type: string
+              nullable: true
+            cc:
+              type: string
+              nullable: true
+            bcc:
+              type: string
+              nullable: true
+          required:
+            - snippet
+            - subject
+            - from
+            - to
+            - body
+            - cc
+            - bcc
+        emailPreview:
+          type: object
+          properties:
+            html:
+              type: string
+              nullable: true
+              description: HTML content of the email
+          required:
+            - html
+        caption:
+          type: string
+          nullable: true
+          description: Summary text
+        keywords:
+          type: array
+          nullable: true
+          items:
+            type: string
+          description: Keywords
+      required:
+        - emailMessage
+        - caption
+    PermissionRole:
+      type: string
+      enum:
+        - owner
+        - viewer
+        - editor
+        - commenter
+    Permission:
+      type: object
+      properties:
+        resourceId:
+          type: string
+          pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+        userId:
+          type: string
+          pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+        role:
+          $ref: '#/components/schemas/PermissionRole'
+        createdAt:
+          type: string
+        modifiedAt:
+          type: string
+      required:
+        - resourceId
+        - userId
+        - role
+        - createdAt
+        - modifiedAt
+    PermissionWithUser:
+      allOf:
+        - $ref: '#/components/schemas/Permission'
+        - type: object
+          properties:
+            user:
+              $ref: '#/components/schemas/UserProfilePublic'
+          required:
+            - user
+    Kind:
+      type: string
+      enum:
+        - default
+        - image
+        - document
+        - folder
+        - bookmark
+        - highlight
+        - notepad
+        - video
+        - audio
+        - email
+        - person
+        - voicenote
+    Tag:
+      type: object
+      properties:
+        id:
+          type: string
+          pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+        userId:
+          type: string
+          pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+        name:
+          type: string
+          maxLength: 255
+        description:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+          nullable: true
+        modifiedAt:
+          type: string
+          nullable: true
+      required:
+        - id
+        - userId
+        - name
+        - description
+    RootAlias:
+      type: string
+      enum:
+        - '@alias::inbox'
+        - '@alias::bin'
+    FileCreation:
+      type: object
+      properties:
+        name:
+          type: string
+          nullable: true
+          minLength: 1
+          maxLength: 255
+        attachment:
+          type: object
+          properties:
+            path:
+              type: string
+            filename:
+              type: string
+          required:
+            - path
+            - filename
+        parentId:
+          anyOf:
+            - type: string
+              pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+            - $ref: '#/components/schemas/RootAlias'
+          description: Parent resource ID or an alias (the alias is resolved to the actual ID during the request handling).
+        tags:
+          type: array
+          items:
+            anyOf:
+              - type: object
+                properties:
+                  id:
+                    type: string
+                    pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+                required:
+                  - id
+              - type: object
+                properties:
+                  name:
+                    type: string
+                    maxLength: 255
+                required:
+                  - name
+        comment:
+          allOf:
+            - $ref: '#/components/schemas/CommentCreate'
+            - nullable: true
+        url:
+          type: string
+          format: uri
+        mimeType:
+          type: string
+        metadata:
+          type: object
+          properties:
+            voiceNote:
+              type: boolean
+              nullable: true
+              description: Whether this item is the audio part of a voice note
+            transcript:
+              type: object
+              nullable: true
+              properties:
+                key:
+                  type: string
+              required:
+                - key
+      required:
+        - attachment
+        - parentId
+        - mimeType
+    RootType:
+      type: string
+      enum:
+        - SYSTEM
+        - SPACE
+        - INTEGRATION
+    SystemSubtypes:
+      type: string
+      enum:
+        - inbox
+        - bin
+    ResourceIcon:
+      oneOf:
+        - type: object
+          properties:
+            type:
+              type: string
+              enum:
+                - emoji
+            emoji:
+              type: string
+          required:
+            - type
+            - emoji
+        - type: object
+          properties:
+            type:
+              type: string
+              enum:
+                - predefined
+            predefined:
+              type: string
+          required:
+            - type
+            - predefined
+        - type: object
+          properties:
+            type:
+              type: string
+              enum:
+                - customImage
+            customImage:
+              $ref: '#/components/schemas/PresignedImage'
+          required:
+            - type
+            - customImage
+    FolderBase:
+      type: object
+      properties:
+        id:
+          type: string
+          pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+        name:
+          type: string
+          nullable: true
+      required:
+        - id
+        - name
+    Folder:
+      allOf:
+        - $ref: '#/components/schemas/FolderBase'
+        - type: object
+          properties:
+            userId:
+              type: string
+              pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+            parentId:
+              type: string
+              pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+            isReadonly:
+              type: boolean
+            icon:
+              allOf:
+                - $ref: '#/components/schemas/ResourceIcon'
+                - oneOf:
+                    - type: object
+                      properties:
+                        type:
+                          type: string
+                          enum:
+                            - emoji
+                        emoji:
+                          type: string
+                      required:
+                        - type
+                        - emoji
+                    - type: object
+                      properties:
+                        type:
+                          type: string
+                          enum:
+                            - predefined
+                        predefined:
+                          type: string
+                      required:
+                        - type
+                        - predefined
+                    - type: object
+                      properties:
+                        type:
+                          type: string
+                          enum:
+                            - customImage
+                        customImage:
+                          $ref: '#/components/schemas/PresignedImage'
+                      required:
+                        - type
+                        - customImage
+                    - nullable: true
+          required:
+            - userId
+            - parentId
+            - isReadonly
+            - icon
+    ResourceRootFolder:
+      type: object
+      properties:
+        id:
+          type: string
+          pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+        name:
+          type: string
+          nullable: true
+        isReadonly:
+          type: boolean
+        icon:
+          allOf:
+            - $ref: '#/components/schemas/ResourceIcon'
+            - oneOf:
+                - type: object
+                  properties:
+                    type:
+                      type: string
+                      enum:
+                        - emoji
+                    emoji:
+                      type: string
+                  required:
+                    - type
+                    - emoji
+                - type: object
+                  properties:
+                    type:
+                      type: string
+                      enum:
+                        - predefined
+                    predefined:
+                      type: string
+                  required:
+                    - type
+                    - predefined
+                - type: object
+                  properties:
+                    type:
+                      type: string
+                      enum:
+                        - customImage
+                    customImage:
+                      $ref: '#/components/schemas/PresignedImage'
+                  required:
+                    - type
+                    - customImage
+                - nullable: true
+        permissions:
+          type: object
+          properties:
+            role:
+              $ref: '#/components/schemas/PermissionRole'
+          required:
+            - role
+        childrenCount:
+          type: number
+        memberCount:
+          type: number
+          minimum: 0
+      required:
+        - id
+        - name
+        - isReadonly
+        - icon
+        - childrenCount
+        - memberCount
+    Resource:
+      type: object
+      properties:
+        id:
+          type: string
+          pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+        kind:
+          $ref: '#/components/schemas/Kind'
+        mimeType:
+          type: string
+          nullable: true
+        extension:
+          type: string
+          nullable: true
+        name:
+          type: string
+          nullable: true
+        description:
+          type: string
+          nullable: true
+        icon:
+          allOf:
+            - $ref: '#/components/schemas/ResourceIcon'
+        size:
+          type: number
+          nullable: true
+        url:
+          type: string
+        commentPinned:
+          allOf:
+            - $ref: '#/components/schemas/CommentWithAuthor'
+            - nullable: true
+        label:
+          type: object
+          nullable: true
+          properties:
+            id:
+              type: number
+            hexColor:
+              type: string
+              maxLength: 7
+          required:
+            - id
+            - hexColor
+        parent:
+          type: object
+          nullable: true
+          properties:
+            id:
+              type: string
+              pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+            name:
+              type: string
+              nullable: true
+          required:
+            - id
+            - name
+        cover:
+          allOf:
+            - $ref: '#/components/schemas/PresignedImage'
+            - nullable: true
+        user:
+          allOf:
+            - $ref: '#/components/schemas/UserProfilePublic'
+            - nullable: true
+        root:
+          type: object
+          nullable: true
+          properties:
+            id:
+              type: string
+              pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+            type:
+              $ref: '#/components/schemas/RootType'
+            subtype:
+              anyOf:
+                - $ref: '#/components/schemas/IntegrationType'
+                - $ref: '#/components/schemas/SystemSubtypes'
+                - nullable: true
+            private:
+              type: boolean
+            folder:
+              allOf:
+                - $ref: '#/components/schemas/FolderBase'
+                - type: object
+                  properties:
+                    user:
+                      allOf:
+                        - $ref: '#/components/schemas/UserProfilePublic'
+                        - nullable: true
+          required:
+            - id
+            - type
+            - subtype
+            - private
+            - folder
+        stateProcessing:
+          $ref: '#/components/schemas/ProcessingState'
+        originUrl:
+          type: string
+          nullable: true
+        tags:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+                pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+              name:
+                type: string
+                maxLength: 255
+            required:
+              - id
+              - name
+        chats:
+          type: array
+          items:
+            $ref: '#/components/schemas/AssistantChat'
+        thumbnail:
+          type: object
+          nullable: true
+          properties:
+            sm:
+              type: string
+            md:
+              type: string
+            lg:
+              type: string
+            xl:
+              type: string
+            original:
+              type: string
+        fileUrl:
+          type: string
+          nullable: true
+        preferences:
+          type: object
+          nullable: true
+          additionalProperties:
+            nullable: true
+        publishedAncestors:
+          type: array
+          items:
+            type: object
+            properties:
+              resourceId:
+                type: string
+                pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+              accessToken:
+                type: string
+            required:
+              - resourceId
+              - accessToken
+        createdAt:
+          type: string
+        modifiedAt:
+          type: string
+      required:
+        - id
+        - kind
+        - mimeType
+        - extension
+        - name
+        - description
+        - size
+        - url
+        - commentCount
+        - commentPinned
+        - pins
+        - pinnedTo
+        - label
+        - parent
+        - ancestors
+        - cover
+        - user
+        - root
+        - stateProcessing
+        - jobsProcessing
+        - originUrl
+        - tags
+        - chats
+        - thumbnail
+        - fileUrl
+        - preferences
+        - isShared
+        - isReadonly
+        - isHidden
+        - shareToken
+        - publishToken
+        - createdAt
+        - modifiedAt
+    ResourceDetailBookmark:
+      allOf:
+        - $ref: '#/components/schemas/Resource'
+        - type: object
+          properties:
+            kind:
+              type: string
+              enum:
+                - bookmark
+          required:
+            - data
+    ResourceDetailEmailMessage:
+      allOf:
+        - $ref: '#/components/schemas/Resource'
+        - type: object
+          properties:
+            kind:
+              type: string
+              enum:
+                - email
+            data:
+              $ref: '#/components/schemas/EmailMessageMetadataBlock'
+          required:
+            - data
+    ResourceDetailHighlight:
+      allOf:
+        - $ref: '#/components/schemas/Resource'
+        - type: object
+          properties:
+            kind:
+              type: string
+              enum:
+                - highlight
+          required:
+            - data
+    ResourceDetailDocument:
+      allOf:
+        - $ref: '#/components/schemas/Resource'
+        - type: object
+          properties:
+            kind:
+              type: string
+              enum:
+                - document
+          required:
+            - data
+    ResourceDetailFolder:
+      allOf:
+        - $ref: '#/components/schemas/Resource'
+        - type: object
+          properties:
+            kind:
+              type: string
+              enum:
+                - folder
+          required:
+            - data
+    ResourceDetailImage:
+      allOf:
+        - $ref: '#/components/schemas/Resource'
+        - type: object
+          properties:
+            kind:
+              type: string
+              enum:
+                - image
+          required:
+            - data
+    ResourceDetailVideo:
+      allOf:
+        - $ref: '#/components/schemas/Resource'
+        - type: object
+          properties:
+            kind:
+              type: string
+              enum:
+                - video
+          required:
+            - data
+    ResourceDetailAudio:
+      allOf:
+        - $ref: '#/components/schemas/Resource'
+        - type: object
+          properties:
+            kind:
+              type: string
+              enum:
+                - audio
+          required:
+            - data
+    ResourceDetailNotepad:
+      allOf:
+        - $ref: '#/components/schemas/Resource'
+        - type: object
+          properties:
+            kind:
+              type: string
+              enum:
+                - notepad
+          required:
+            - data
+    ResourceDetailVoicenote:
+      allOf:
+        - $ref: '#/components/schemas/Resource'
+        - type: object
+          properties:
+            kind:
+              type: string
+              enum:
+                - voicenote
+          required:
+            - data
+    ResourceDetailDefault:
+      allOf:
+        - $ref: '#/components/schemas/Resource'
+        - type: object
+          properties:
+            kind:
+              type: string
+              enum:
+                - default
+          required:
+            - data
+    ResourceDetail:
+      oneOf:
+        - $ref: '#/components/schemas/ResourceDetailDocument'
+        - $ref: '#/components/schemas/ResourceDetailAudio'
+        - $ref: '#/components/schemas/ResourceDetailVideo'
+        - $ref: '#/components/schemas/ResourceDetailBookmark'
+        - $ref: '#/components/schemas/ResourceDetailFolder'
+        - $ref: '#/components/schemas/ResourceDetailHighlight'
+        - $ref: '#/components/schemas/ResourceDetailImage'
+        - $ref: '#/components/schemas/ResourceDetailNotepad'
+        - $ref: '#/components/schemas/ResourceDetailVoicenote'
+        - $ref: '#/components/schemas/ResourceDetailEmailMessage'
+        - $ref: '#/components/schemas/ResourceDetailDefault'
+      discriminator:
+        propertyName: kind
+        mapping:
+          document: '#/components/schemas/ResourceDetailDocument'
+          audio: '#/components/schemas/ResourceDetailAudio'
+          video: '#/components/schemas/ResourceDetailVideo'
+          bookmark: '#/components/schemas/ResourceDetailBookmark'
+          folder: '#/components/schemas/ResourceDetailFolder'
+          highlight: '#/components/schemas/ResourceDetailHighlight'
+          image: '#/components/schemas/ResourceDetailImage'
+          notepad: '#/components/schemas/ResourceDetailNotepad'
+          voicenote: '#/components/schemas/ResourceDetailVoicenote'
+          email: '#/components/schemas/ResourceDetailEmailMessage'
+          default: '#/components/schemas/ResourceDetailDefault'
+    SubscriptionTier:
+      type: string
+      nullable: true
+      enum:
+        - free
+        - basic
+        - starter
+        - pro
+        - max
+        - lifetime
+        - team
+    PlanEntitlements:
+      type: object
+      properties:
+        maxFileSizeMB:
+          type: integer
+        chatbotCredits:
+          type: integer
+        maxResourceCount:
+          type: integer
+        maxTotalStorageSizeMB:
+          type: integer
+        creditCentsMonthly:
+          type: integer
+        integrationsEnabled:
+          type: boolean
+        bulkImportEnabled:
+          type: boolean
+        audioTranscriptionEnabled:
+          type: boolean
+        aiVoiceAndMeetingRecordingEnabled:
+          type: boolean
+        recapsEnabled:
+          type: boolean
+        modelSwitchingEnabled:
+          type: boolean
+        apiKeysEnabled:
+          type: boolean
+        fabricLabsEnabled:
+          type: boolean
+        freeImportItemLimit:
+          type: integer
+      required:
+        - maxFileSizeMB
+        - chatbotCredits
+        - maxResourceCount
+        - maxTotalStorageSizeMB
+        - creditCentsMonthly
+        - integrationsEnabled
+        - bulkImportEnabled
+        - audioTranscriptionEnabled
+        - aiVoiceAndMeetingRecordingEnabled
+        - recapsEnabled
+        - modelSwitchingEnabled
+        - apiKeysEnabled
+        - fabricLabsEnabled
+        - freeImportItemLimit
+    BookmarkCreationResponse:
+      anyOf:
+        - $ref: '#/components/schemas/ResourceDetailBookmark'
+        - $ref: '#/components/schemas/ResourceDetailDocument'
+    PublicIntegrationSchema:
+      type: object
+      properties:
+        id:
+          type: string
+          pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+        userId:
+          type: string
+          pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+        externalId:
+          type: string
+        email:
+          type: string
+          nullable: true
+        displayName:
+          type: string
+        pictureUrl:
+          type: string
+          nullable: true
+        type:
+          $ref: '#/components/schemas/IntegrationType'
+        createdAt:
+          type: string
+        modifiedAt:
+          type: string
+        status:
+          $ref: '#/components/schemas/IntegrationStatus'
+        statusMessages:
+          type: object
+          additionalProperties:
+            nullable: true
+        needsReinstall:
+          type: boolean
+      required:
+        - id
+        - userId
+        - externalId
+        - email
+        - displayName
+        - pictureUrl
+        - type
+        - createdAt
+        - modifiedAt
+        - status
+        - statusMessages
+        - needsReinstall
+    UsageItem:
+      type: object
+      properties:
+        limit:
+          type: number
+        used:
+          type: number
+      required:
+        - limit
+        - used
+    UsageItems:
+      type: object
+      properties:
+        storage:
+          $ref: '#/components/schemas/UsageItem'
+        chatbot:
+          $ref: '#/components/schemas/UsageItem'
+        credits:
+          $ref: '#/components/schemas/UsageItem'
+        imported_items:
+          $ref: '#/components/schemas/UsageItem'
+    SubscriptionStatus:
+      type: string
+      nullable: true
+      enum:
+        - active
+        - canceled
+        - incomplete
+        - incomplete_expired
+        - past_due
+        - paused
+        - trialing
+        - unpaid
+    BillingCycle:
+      type: string
+      nullable: true
+      enum:
+        - week
+        - month
+        - year
+        - year_3
+    Store:
+      type: string
+      nullable: true
+      enum:
+        - app_store
+        - play_store
+        - stripe
+        - promotional
+    WorkspaceSubscription:
+      type: object
+      properties:
+        tier:
+          $ref: '#/components/schemas/SubscriptionTier'
+        status:
+          $ref: '#/components/schemas/SubscriptionStatus'
+        trialEndingAt:
+          type: string
+          nullable: true
+        billingCycle:
+          $ref: '#/components/schemas/BillingCycle'
+        entitlements:
+          allOf:
+            - $ref: '#/components/schemas/PlanEntitlements'
+            - nullable: true
+        hasDefaultPaymentMethod:
+          type: boolean
+        usage:
+          $ref: '#/components/schemas/UsageItems'
+        creditTopupAt:
+          type: string
+          nullable: true
+        creditOperationCosts:
+          type: object
+          properties:
+            RESOURCE_CREATED:
+              type: integer
+            ASSISTANT_MESSAGE:
+              type: integer
+            TOP_UP_MANUAL:
+              type: integer
+            TOP_UP_PLAN:
+              type: integer
+            TOP_UP_AUTO:
+              type: integer
+        planStoreId:
+          type: string
+          nullable: true
+        planStoreType:
+          $ref: '#/components/schemas/Store'
+      required:
+        - tier
+        - status
+        - trialEndingAt
+        - billingCycle
+        - entitlements
+        - hasDefaultPaymentMethod
+        - usage
+        - creditTopupAt
+        - creditOperationCosts
+        - planStoreId
+        - planStoreType
+    ResourceFilterResponse:
+      type: object
+      properties:
+        total:
+          type: number
+        hasMore:
+          type: boolean
+        nextCursor:
+          type: string
+          nullable: true
+        resources:
+          type: array
+          items:
+            $ref: '#/components/schemas/ResourceDetail'
+      required:
+        - total
+        - hasMore
+        - resources
+    ResourceRootBase:
+      type: object
+      properties:
+        id:
+          type: string
+          pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+        type:
+          $ref: '#/components/schemas/RootType'
+        createdAt:
+          type: string
+        modifiedAt:
+          type: string
+        private:
+          type: boolean
+        lastResourceAddedAt:
+          type: string
+          nullable: true
+          description: The timestamp of when the last descendant resource was added
+        folder:
+          $ref: '#/components/schemas/ResourceRootFolder'
+      required:
+        - id
+        - type
+        - createdAt
+        - modifiedAt
+        - private
+        - folder
+    ResourceRootSystem:
+      allOf:
+        - $ref: '#/components/schemas/ResourceRootBase'
+        - type: object
+          properties:
+            type:
+              type: string
+              enum:
+                - SYSTEM
+            subtype:
+              $ref: '#/components/schemas/SystemSubtypes'
+          required:
+            - subtype
+    ResourceRootIntegration:
+      allOf:
+        - $ref: '#/components/schemas/ResourceRootBase'
+        - type: object
+          properties:
+            type:
+              type: string
+              enum:
+                - INTEGRATION
+            subtype:
+              $ref: '#/components/schemas/IntegrationType'
+          required:
+            - subtype
+    ResourceRootSpace:
+      allOf:
+        - $ref: '#/components/schemas/ResourceRootBase'
+        - type: object
+          properties:
+            type:
+              type: string
+              enum:
+                - SPACE
+            subtype:
+              type: object
+              nullable: true
+              enum:
+                - null
+          required:
+            - subtype
+    ResourceRootListItem:
+      anyOf:
+        - $ref: '#/components/schemas/ResourceRootSystem'
+        - $ref: '#/components/schemas/ResourceRootIntegration'
+        - $ref: '#/components/schemas/ResourceRootSpace'
+    ResourceRootDetail:
+      allOf:
+        - type: object
+          properties:
+            id:
+              type: string
+              pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+            type:
+              $ref: '#/components/schemas/RootType'
+            createdAt:
+              type: string
+            modifiedAt:
+              type: string
+            private:
+              type: boolean
+            lastResourceAddedAt:
+              type: string
+              nullable: true
+              description: The timestamp of when the last descendant resource was added
+            folder:
+              $ref: '#/components/schemas/ResourceRootFolder'
+          required:
+            - id
+            - type
+            - createdAt
+            - modifiedAt
+            - private
+            - folder
+        - oneOf:
+            - $ref: '#/components/schemas/ResourceRootSystem'
+            - $ref: '#/components/schemas/ResourceRootSpace'
+            - allOf:
+                - $ref: '#/components/schemas/ResourceRootIntegration'
+                - type: object
+    Space:
+      type: object
+      properties:
+        id:
+          type: string
+          pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+        name:
+          type: string
+          nullable: true
+      required:
+        - id
+        - name
+    PresignedResponse:
+      type: object
+      properties:
+        url:
+          type: string
+        headers:
+          anyOf:
+            - type: object
+              properties:
+                ETag:
+                  type: string
+                  nullable: true
+                Content-Disposition:
+                  type: string
+                  nullable: true
+            - type: object
+              additionalProperties:
+                type: string
+      required:
+        - url
+        - headers
+    SharingFilters:
+      type: string
+      enum:
+        - onlyMe
+        - published
+        - shared
+        - sharedWithMe
+        - sharedWithMeDirectly
+    UsageType:
+      type: string
+      enum:
+        - storage
+        - chatbot
+        - credits
+        - imported_items
+  parameters: {}
