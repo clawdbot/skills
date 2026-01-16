@@ -1,0 +1,249 @@
+package beeperapi
+
+import (
+	"context"
+	"time"
+
+	beeperdesktopapi "github.com/beeper/desktop-api-go"
+)
+
+// ChatsService handles chat operations.
+type ChatsService struct {
+	client *Client
+}
+
+// ChatListParams configures chat list queries.
+type ChatListParams struct {
+	AccountIDs []string
+	Cursor     string
+	Direction  string // before|after
+}
+
+// ChatListResult is the list response with pagination info.
+type ChatListResult struct {
+	Items        []ChatListItem `json:"items"`
+	HasMore      bool           `json:"has_more"`
+	OldestCursor string         `json:"oldest_cursor,omitempty"`
+	NewestCursor string         `json:"newest_cursor,omitempty"`
+}
+
+// ChatListItem represents a chat in list output.
+type ChatListItem struct {
+	ID           string `json:"id"`
+	Title        string `json:"title"`
+	AccountID    string `json:"account_id"`
+	LastActivity string `json:"last_activity,omitempty"`
+	Preview      string `json:"preview,omitempty"`
+}
+
+// ChatSearchParams configures chat search queries.
+type ChatSearchParams struct {
+	Query      string
+	Inbox      string // primary|low-priority|archive
+	UnreadOnly bool
+	Type       string // direct|group|any
+	Limit      int
+	Cursor     string
+	Direction  string // before|after
+}
+
+// ChatSearchResult is the search response with pagination info.
+type ChatSearchResult struct {
+	Items        []ChatSearchItem `json:"items"`
+	HasMore      bool             `json:"has_more"`
+	OldestCursor string           `json:"oldest_cursor,omitempty"`
+	NewestCursor string           `json:"newest_cursor,omitempty"`
+}
+
+// ChatSearchItem represents a chat in search output.
+type ChatSearchItem struct {
+	ID          string `json:"id"`
+	Title       string `json:"title"`
+	Type        string `json:"type"`
+	Network     string `json:"network"`
+	UnreadCount int64  `json:"unread_count"`
+	IsArchived  bool   `json:"is_archived"`
+	IsMuted     bool   `json:"is_muted"`
+}
+
+// ChatDetail represents a chat detail response.
+type ChatDetail struct {
+	ID                     string `json:"id"`
+	Title                  string `json:"title"`
+	AccountID              string `json:"account_id"`
+	Network                string `json:"network"`
+	Type                   string `json:"type"`
+	UnreadCount            int64  `json:"unread_count"`
+	IsArchived             bool   `json:"is_archived"`
+	IsMuted                bool   `json:"is_muted"`
+	IsPinned               bool   `json:"is_pinned"`
+	LastActivity           string `json:"last_activity,omitempty"`
+	LastReadMessageSortKey string `json:"last_read_message_sort_key,omitempty"`
+	LocalChatID            string `json:"local_chat_id,omitempty"`
+	Preview                string `json:"preview,omitempty"`
+	ParticipantsTotal      int64  `json:"participants_total"`
+	ParticipantsReturned   int    `json:"participants_returned"`
+	ParticipantsHasMore    bool   `json:"participants_has_more"`
+}
+
+// List retrieves chats with cursor-based pagination.
+func (s *ChatsService) List(ctx context.Context, params ChatListParams) (ChatListResult, error) {
+	ctx, cancel := s.client.contextWithTimeout(ctx)
+	defer cancel()
+
+	sdkParams := beeperdesktopapi.ChatListParams{}
+	if len(params.AccountIDs) > 0 {
+		sdkParams.AccountIDs = params.AccountIDs
+	}
+	if params.Cursor != "" {
+		sdkParams.Cursor = beeperdesktopapi.String(params.Cursor)
+	}
+	switch params.Direction {
+	case "before":
+		sdkParams.Direction = beeperdesktopapi.ChatListParamsDirectionBefore
+	case "after":
+		sdkParams.Direction = beeperdesktopapi.ChatListParamsDirectionAfter
+	}
+
+	page, err := s.client.SDK.Chats.List(ctx, sdkParams)
+	if err != nil {
+		return ChatListResult{}, err
+	}
+
+	result := ChatListResult{
+		Items:        make([]ChatListItem, 0, len(page.Items)),
+		HasMore:      page.HasMore,
+		OldestCursor: page.OldestCursor,
+		NewestCursor: page.NewestCursor,
+	}
+
+	for _, chat := range page.Items {
+		item := ChatListItem{
+			ID:        chat.ID,
+			Title:     chat.Title,
+			AccountID: chat.AccountID,
+		}
+		if !chat.LastActivity.IsZero() {
+			item.LastActivity = chat.LastActivity.Format(time.RFC3339)
+		}
+		if chat.JSON.Preview.Valid() {
+			item.Preview = chat.Preview.Text
+		}
+		result.Items = append(result.Items, item)
+	}
+
+	return result, nil
+}
+
+// Search retrieves chats matching a query.
+func (s *ChatsService) Search(ctx context.Context, params ChatSearchParams) (ChatSearchResult, error) {
+	ctx, cancel := s.client.contextWithTimeout(ctx)
+	defer cancel()
+
+	sdkParams := beeperdesktopapi.ChatSearchParams{}
+	if params.Query != "" {
+		sdkParams.Query = beeperdesktopapi.String(params.Query)
+	}
+	if params.UnreadOnly {
+		sdkParams.UnreadOnly = beeperdesktopapi.Bool(true)
+	}
+	if params.Limit > 0 {
+		sdkParams.Limit = beeperdesktopapi.Int(int64(params.Limit))
+	}
+	if params.Cursor != "" {
+		sdkParams.Cursor = beeperdesktopapi.String(params.Cursor)
+	}
+	switch params.Direction {
+	case "before":
+		sdkParams.Direction = beeperdesktopapi.ChatSearchParamsDirectionBefore
+	case "after":
+		sdkParams.Direction = beeperdesktopapi.ChatSearchParamsDirectionAfter
+	}
+	switch params.Inbox {
+	case "primary":
+		sdkParams.Inbox = beeperdesktopapi.ChatSearchParamsInboxPrimary
+	case "low-priority":
+		sdkParams.Inbox = beeperdesktopapi.ChatSearchParamsInboxLowPriority
+	case "archive":
+		sdkParams.Inbox = beeperdesktopapi.ChatSearchParamsInboxArchive
+	}
+	switch params.Type {
+	case "direct":
+		sdkParams.Type = beeperdesktopapi.ChatSearchParamsTypeSingle
+	case "group":
+		sdkParams.Type = beeperdesktopapi.ChatSearchParamsTypeGroup
+	case "any":
+		sdkParams.Type = beeperdesktopapi.ChatSearchParamsTypeAny
+	}
+
+	page, err := s.client.SDK.Chats.Search(ctx, sdkParams)
+	if err != nil {
+		return ChatSearchResult{}, err
+	}
+
+	result := ChatSearchResult{
+		Items:        make([]ChatSearchItem, 0, len(page.Items)),
+		HasMore:      page.HasMore,
+		OldestCursor: page.OldestCursor,
+		NewestCursor: page.NewestCursor,
+	}
+
+	for _, chat := range page.Items {
+		result.Items = append(result.Items, ChatSearchItem{
+			ID:          chat.ID,
+			Title:       chat.Title,
+			Type:        string(chat.Type),
+			Network:     chat.Network,
+			UnreadCount: chat.UnreadCount,
+			IsArchived:  chat.IsArchived,
+			IsMuted:     chat.IsMuted,
+		})
+	}
+
+	return result, nil
+}
+
+// Get retrieves details for a single chat by ID.
+func (s *ChatsService) Get(ctx context.Context, chatID string) (ChatDetail, error) {
+	ctx, cancel := s.client.contextWithTimeout(ctx)
+	defer cancel()
+
+	chat, err := s.client.SDK.Chats.Get(ctx, chatID, beeperdesktopapi.ChatGetParams{})
+	if err != nil {
+		return ChatDetail{}, err
+	}
+
+	detail := ChatDetail{
+		ID:                     chat.ID,
+		Title:                  chat.Title,
+		AccountID:              chat.AccountID,
+		Network:                chat.Network,
+		Type:                   string(chat.Type),
+		UnreadCount:            chat.UnreadCount,
+		IsArchived:             chat.IsArchived,
+		IsMuted:                chat.IsMuted,
+		IsPinned:               chat.IsPinned,
+		LastReadMessageSortKey: chat.LastReadMessageSortKey,
+		LocalChatID:            chat.LocalChatID,
+		ParticipantsTotal:      chat.Participants.Total,
+		ParticipantsReturned:   len(chat.Participants.Items),
+		ParticipantsHasMore:    chat.Participants.HasMore,
+	}
+	if !chat.LastActivity.IsZero() {
+		detail.LastActivity = chat.LastActivity.Format(time.RFC3339)
+	}
+
+	return detail, nil
+}
+
+// Archive archives or unarchives a chat.
+func (s *ChatsService) Archive(ctx context.Context, chatID string, archived bool) error {
+	ctx, cancel := s.client.contextWithTimeout(ctx)
+	defer cancel()
+
+	sdkParams := beeperdesktopapi.ChatArchiveParams{
+		Archived: beeperdesktopapi.Bool(archived),
+	}
+
+	return s.client.SDK.Chats.Archive(ctx, chatID, sdkParams)
+}
