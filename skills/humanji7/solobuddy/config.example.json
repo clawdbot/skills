@@ -1,0 +1,12 @@
+{
+  "solobuddy": {
+    "dataPath": "~/projects/my-build-in-public",
+    "voice": "jester-sage"
+  },
+  "twitter": {
+    "watchlist": ["levelsio", "marclou", "naval", "shl", "adamwathan"],
+    "checkInterval": "30m",
+    "maxTweetsPerUser": 5,
+    "maxAgeHours": 6
+  }
+}
