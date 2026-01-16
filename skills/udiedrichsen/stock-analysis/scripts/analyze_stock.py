@@ -29,6 +29,49 @@ import pandas as pd
 import yfinance as yf
 
 
+# Top 20 supported cryptocurrencies
+SUPPORTED_CRYPTOS = {
+    "BTC-USD", "ETH-USD", "BNB-USD", "SOL-USD", "XRP-USD",
+    "ADA-USD", "DOGE-USD", "AVAX-USD", "DOT-USD", "MATIC-USD",
+    "LINK-USD", "ATOM-USD", "UNI-USD", "LTC-USD", "BCH-USD",
+    "XLM-USD", "ALGO-USD", "VET-USD", "FIL-USD", "NEAR-USD",
+}
+
+# Crypto category mapping for sector-like analysis
+CRYPTO_CATEGORIES = {
+    "BTC-USD": "Store of Value",
+    "ETH-USD": "Smart Contract L1",
+    "BNB-USD": "Exchange Token",
+    "SOL-USD": "Smart Contract L1",
+    "XRP-USD": "Payment",
+    "ADA-USD": "Smart Contract L1",
+    "DOGE-USD": "Meme",
+    "AVAX-USD": "Smart Contract L1",
+    "DOT-USD": "Interoperability",
+    "MATIC-USD": "Layer 2",
+    "LINK-USD": "Oracle",
+    "ATOM-USD": "Interoperability",
+    "UNI-USD": "DeFi",
+    "LTC-USD": "Payment",
+    "BCH-USD": "Payment",
+    "XLM-USD": "Payment",
+    "ALGO-USD": "Smart Contract L1",
+    "VET-USD": "Enterprise",
+    "FIL-USD": "Storage",
+    "NEAR-USD": "Smart Contract L1",
+}
+
+
+def detect_asset_type(ticker: str) -> Literal["stock", "crypto"]:
+    """Detect asset type from ticker format."""
+    ticker_upper = ticker.upper()
+    if ticker_upper.endswith("-USD"):
+        base = ticker_upper[:-4]
+        if base.isalpha():
+            return "crypto"
+    return "stock"
+
+
 @dataclass
 class StockData:
     ticker: str
@@ -36,6 +79,20 @@ class StockData:
     earnings_history: pd.DataFrame | None
     analyst_info: dict | None
     price_history: pd.DataFrame | None
+    asset_type: Literal["stock", "crypto"] = "stock"
+
+
+@dataclass
+class CryptoFundamentals:
+    """Crypto-specific fundamentals (replaces P/E, margins for crypto)."""
+    market_cap: float | None
+    market_cap_rank: str  # "large", "mid", "small"
+    volume_24h: float | None
+    circulating_supply: float | None
+    category: str | None  # "Smart Contract L1", "DeFi", etc.
+    btc_correlation: float | None  # 30-day correlation to BTC
+    score: float
+    explanation: str
 
 
 @dataclass
@@ -212,6 +269,7 @@ def fetch_stock_data(ticker: str, verbose: bool = False) -> StockData | None:
                 earnings_history=earnings_history,
                 analyst_info=analyst_info,
                 price_history=price_history,
+                asset_type=detect_asset_type(ticker),
             )
 
         except Exception as e:
@@ -348,6 +406,100 @@ def analyze_fundamentals(data: StockData) -> Fundamentals | None:
         )
 
     except Exception:
+        return None
+
+
+def analyze_crypto_fundamentals(data: StockData, verbose: bool = False) -> CryptoFundamentals | None:
+    """Analyze crypto-specific fundamentals (market cap, supply, category)."""
+    if data.asset_type != "crypto":
+        return None
+
+    info = data.info
+    ticker = data.ticker.upper()
+
+    try:
+        # Market cap analysis
+        market_cap = info.get("marketCap")
+        if not market_cap:
+            return None
+
+        # Categorize by market cap
+        if market_cap >= 10_000_000_000:  # $10B+
+            market_cap_rank = "large"
+            cap_score = 0.3  # Large caps are more stable
+        elif market_cap >= 1_000_000_000:  # $1B-$10B
+            market_cap_rank = "mid"
+            cap_score = 0.1
+        else:
+            market_cap_rank = "small"
+            cap_score = -0.2  # Small caps are riskier
+
+        # Volume analysis
+        volume_24h = info.get("volume") or info.get("volume24Hr")
+        volume_score = 0.0
+        if volume_24h and market_cap:
+            volume_to_cap = volume_24h / market_cap
+            if volume_to_cap > 0.05:  # >5% daily turnover
+                volume_score = 0.2  # High liquidity
+            elif volume_to_cap < 0.01:
+                volume_score = -0.2  # Low liquidity
+
+        # Circulating supply
+        circulating_supply = info.get("circulatingSupply")
+
+        # Get crypto category
+        category = CRYPTO_CATEGORIES.get(ticker, "Unknown")
+
+        # Calculate BTC correlation (30 days)
+        btc_correlation = None
+        try:
+            if ticker != "BTC-USD" and data.price_history is not None:
+                btc = yf.Ticker("BTC-USD")
+                btc_hist = btc.history(period="1mo")
+                if not btc_hist.empty and len(data.price_history) > 5:
+                    # Align dates and calculate correlation
+                    crypto_returns = data.price_history["Close"].pct_change().dropna()
+                    btc_returns = btc_hist["Close"].pct_change().dropna()
+                    # Simple correlation on overlapping dates
+                    common_dates = crypto_returns.index.intersection(btc_returns.index)
+                    if len(common_dates) > 10:
+                        btc_correlation = crypto_returns.loc[common_dates].corr(btc_returns.loc[common_dates])
+        except Exception:
+            pass
+
+        # BTC correlation scoring (high correlation = less diversification benefit)
+        corr_score = 0.0
+        if btc_correlation is not None:
+            if btc_correlation > 0.8:
+                corr_score = -0.1  # Very correlated to BTC
+            elif btc_correlation < 0.3:
+                corr_score = 0.1  # Good diversification
+
+        # Total score
+        total_score = cap_score + volume_score + corr_score
+
+        # Build explanation
+        explanations = []
+        explanations.append(f"Market cap: ${market_cap/1e9:.1f}B ({market_cap_rank})")
+        if category != "Unknown":
+            explanations.append(f"Category: {category}")
+        if btc_correlation is not None:
+            explanations.append(f"BTC corr: {btc_correlation:.2f}")
+
+        return CryptoFundamentals(
+            market_cap=market_cap,
+            market_cap_rank=market_cap_rank,
+            volume_24h=volume_24h,
+            circulating_supply=circulating_supply,
+            category=category,
+            btc_correlation=round(btc_correlation, 2) if btc_correlation else None,
+            score=max(-1.0, min(1.0, total_score)),
+            explanation="; ".join(explanations),
+        )
+
+    except Exception as e:
+        if verbose:
+            print(f"Error analyzing crypto fundamentals: {e}", file=sys.stderr)
         return None
 
 
@@ -499,7 +651,14 @@ def analyze_historical_patterns(data: StockData) -> HistoricalPatterns | None:
 
 
 def analyze_market_context(verbose: bool = False) -> MarketContext | None:
-    """Analyze overall market conditions using VIX, SPY, and QQQ."""
+    """Analyze overall market conditions using VIX, SPY, QQQ, and safe-havens with 1h cache."""
+    # Check cache first
+    cached = _get_cached("market_context")
+    if cached is not None:
+        if verbose:
+            print("Using cached market context (< 1h old)", file=sys.stderr)
+        return cached
+
     try:
         if verbose:
             print("Fetching market indicators (VIX, SPY, QQQ)...", file=sys.stderr)
@@ -612,7 +771,7 @@ def analyze_market_context(verbose: bool = False) -> MarketContext | None:
         if risk_off_detected:
             explanation += " ⚠️ RISK-OFF MODE"
 
-        return MarketContext(
+        result = MarketContext(
             vix_level=vix_level,
             vix_status=vix_status,
             spy_trend_10d=spy_trend_10d,
@@ -625,6 +784,10 @@ def analyze_market_context(verbose: bool = False) -> MarketContext | None:
             uup_change_5d=uup_change_5d,
             risk_off_detected=risk_off_detected,
         )
+
+        # Cache the result for 1 hour
+        _set_cache("market_context", result)
+        return result
 
     except Exception as e:
         if verbose:
@@ -1282,13 +1445,119 @@ async def get_vix_term_structure() -> tuple[float, str | None, float | None] | N
 
 async def get_insider_activity(ticker: str, period_days: int = 90) -> tuple[float, int | None, float | None] | None:
     """
-    Analyze insider trading from SEC Form 4 filings.
+    Analyze insider trading from SEC Form 4 filings using edgartools.
     Returns: (score, net_shares, net_value_millions) or None.
+
+    Scoring logic:
+    - Strong buying (>100K shares or >$1M): +0.8
+    - Moderate buying (>10K shares or >$0.1M): +0.4
+    - Neutral: 0
+    - Moderate selling: -0.4
+    - Strong selling: -0.8
 
     Note: SEC EDGAR API requires User-Agent with email.
     """
-    # Placeholder - needs proper edgartools integration
-    return None
+    def _fetch():
+        try:
+            from edgar import Company, set_identity
+            from datetime import datetime, timedelta
+
+            # Set SEC-required identity
+            set_identity("stock-analysis@clawd.bot")
+
+            # Get company and Form 4 filings
+            company = Company(ticker)
+            filings = company.get_filings(form="4")
+
+            if filings is None or len(filings) == 0:
+                return None
+
+            # Calculate cutoff date
+            cutoff_date = datetime.now() - timedelta(days=period_days)
+
+            # Aggregate transactions
+            total_bought_shares = 0
+            total_sold_shares = 0
+            total_bought_value = 0.0
+            total_sold_value = 0.0
+
+            # Process recent filings (iterate, don't slice due to pyarrow compatibility)
+            count = 0
+            for filing in filings:
+                if count >= 50:
+                    break
+                count += 1
+
+                try:
+                    # Check filing date
+                    filing_date = filing.filing_date
+                    if hasattr(filing_date, 'to_pydatetime'):
+                        filing_date = filing_date.to_pydatetime()
+                    elif isinstance(filing_date, str):
+                        filing_date = datetime.strptime(filing_date, "%Y-%m-%d")
+
+                    # Convert date object to datetime for comparison
+                    if hasattr(filing_date, 'year') and not hasattr(filing_date, 'hour'):
+                        filing_date = datetime.combine(filing_date, datetime.min.time())
+
+                    if filing_date < cutoff_date:
+                        continue
+
+                    # Get Form 4 object
+                    form4 = filing.obj()
+                    if form4 is None:
+                        continue
+
+                    # Process purchases (edgartools returns DataFrames)
+                    if hasattr(form4, 'common_stock_purchases'):
+                        purchases = form4.common_stock_purchases
+                        if isinstance(purchases, pd.DataFrame) and not purchases.empty:
+                            if 'Shares' in purchases.columns:
+                                total_bought_shares += int(purchases['Shares'].sum())
+                            if 'Price' in purchases.columns and 'Shares' in purchases.columns:
+                                total_bought_value += float((purchases['Shares'] * purchases['Price']).sum())
+
+                    # Process sales
+                    if hasattr(form4, 'common_stock_sales'):
+                        sales = form4.common_stock_sales
+                        if isinstance(sales, pd.DataFrame) and not sales.empty:
+                            if 'Shares' in sales.columns:
+                                total_sold_shares += int(sales['Shares'].sum())
+                            if 'Price' in sales.columns and 'Shares' in sales.columns:
+                                total_sold_value += float((sales['Shares'] * sales['Price']).sum())
+
+                except Exception:
+                    continue
+
+            # Calculate net values
+            net_shares = total_bought_shares - total_sold_shares
+            net_value = (total_bought_value - total_sold_value) / 1_000_000  # Millions
+
+            # Apply scoring logic
+            if net_shares > 100_000 or net_value > 1.0:
+                score = 0.8  # Strong buying
+            elif net_shares > 10_000 or net_value > 0.1:
+                score = 0.4  # Moderate buying
+            elif net_shares < -100_000 or net_value < -1.0:
+                score = -0.8  # Strong selling
+            elif net_shares < -10_000 or net_value < -0.1:
+                score = -0.4  # Moderate selling
+            else:
+                score = 0.0  # Neutral
+
+            return (score, net_shares, net_value)
+
+        except ImportError:
+            # edgartools not installed
+            return None
+        except Exception:
+            return None
+
+    try:
+        result = await asyncio.to_thread(_fetch)
+        return result
+    except Exception:
+        return None
 
 
 async def get_put_call_ratio(data: StockData) -> tuple[float, float | None, int | None, int | None] | None:
@@ -1841,8 +2110,8 @@ def main():
     )
     parser.add_argument(
         "tickers",
-        nargs="+",
-        help="Stock ticker(s) to analyze"
+        nargs="*",
+        help="Stock/crypto ticker(s) to analyze"
     )
     parser.add_argument(
         "--output",
@@ -1855,8 +2124,59 @@ def main():
         action="store_true",
         help="Verbose output to stderr"
     )
+    parser.add_argument(
+        "--portfolio", "-p",
+        type=str,
+        help="Analyze all assets in a portfolio"
+    )
+    parser.add_argument(
+        "--period",
+        choices=["daily", "weekly", "monthly", "quarterly", "yearly"],
+        help="Period for portfolio performance analysis"
+    )
 
     args = parser.parse_args()
+
+    # Handle portfolio mode
+    portfolio_assets = []
+    portfolio_name = None
+    if args.portfolio:
+        try:
+            from portfolio import PortfolioStore
+            store = PortfolioStore()
+            portfolio = store.get_portfolio(args.portfolio)
+            if not portfolio:
+                # Try to find default portfolio if name not found
+                default_name = store.get_default_portfolio_name()
+                if default_name and args.portfolio.lower() == "default":
+                    portfolio = store.get_portfolio(default_name)
+                    portfolio_name = default_name
+                else:
+                    print(f"Error: Portfolio '{args.portfolio}' not found", file=sys.stderr)
+                    sys.exit(1)
+            else:
+                portfolio_name = portfolio.name
+
+            if not portfolio.assets:
+                print(f"Portfolio '{portfolio_name}' has no assets", file=sys.stderr)
+                sys.exit(1)
+
+            portfolio_assets = [(a.ticker, a.quantity, a.cost_basis, a.type) for a in portfolio.assets]
+            args.tickers = [a.ticker for a in portfolio.assets]
+
+            if args.verbose:
+                print(f"Analyzing portfolio: {portfolio_name} ({len(portfolio_assets)} assets)", file=sys.stderr)
+
+        except ImportError:
+            print("Error: portfolio.py not found", file=sys.stderr)
+            sys.exit(1)
+        except Exception as e:
+            print(f"Error loading portfolio: {e}", file=sys.stderr)
+            sys.exit(1)
+
+    if not args.tickers:
+        parser.print_help()
+        sys.exit(1)
 
     # NEW v4.0.0: Check for breaking news (market-wide, check once before analyzing tickers)
     if args.verbose:
@@ -1883,57 +2203,105 @@ def main():
         # Get company name
         company_name = data.info.get("longName") or data.info.get("shortName") or ticker
 
-        # Analyze all components
-        earnings = analyze_earnings_surprise(data)
-        fundamentals = analyze_fundamentals(data)
-        analysts = analyze_analyst_sentiment(data)
-        historical = analyze_historical_patterns(data)
+        # Detect asset type (crypto vs stock)
+        is_crypto = data.asset_type == "crypto"
 
-        # NEW: Analyze market context (shared across all tickers if analyzing multiple)
+        if args.verbose and is_crypto:
+            print(f"  Asset type: CRYPTO (using crypto-specific analysis)", file=sys.stderr)
+
+        # Analyze components (different for crypto vs stock)
+        if is_crypto:
+            # Crypto: Skip stock-specific analyses
+            earnings = None
+            fundamentals = None
+            analysts = None
+            historical = None
+            earnings_timing = None
+            sector = None
+
+            # Crypto fundamentals (market cap, category, BTC correlation)
+            if args.verbose:
+                print(f"Analyzing crypto fundamentals...", file=sys.stderr)
+            crypto_fundamentals = analyze_crypto_fundamentals(data, verbose=args.verbose)
+
+            # Convert crypto fundamentals to regular Fundamentals for synthesize_signal
+            if crypto_fundamentals:
+                fundamentals = Fundamentals(
+                    score=crypto_fundamentals.score,
+                    key_metrics={
+                        "market_cap": crypto_fundamentals.market_cap,
+                        "market_cap_rank": crypto_fundamentals.market_cap_rank,
+                        "category": crypto_fundamentals.category,
+                        "btc_correlation": crypto_fundamentals.btc_correlation,
+                    },
+                    explanation=crypto_fundamentals.explanation,
+                )
+        else:
+            # Stock: Full analysis
+            earnings = analyze_earnings_surprise(data)
+            fundamentals = analyze_fundamentals(data)
+            analysts = analyze_analyst_sentiment(data)
+            historical = analyze_historical_patterns(data)
+
+            # Analyze earnings timing (stocks only)
+            if args.verbose:
+                print(f"Checking earnings timing...", file=sys.stderr)
+            earnings_timing = analyze_earnings_timing(data)
+
+            # Analyze sector performance (stocks only)
+            if args.verbose:
+                print(f"Analyzing sector performance...", file=sys.stderr)
+            sector = analyze_sector_performance(data, verbose=args.verbose)
+
+        # Market context (both crypto and stock)
         if args.verbose:
             print(f"Analyzing market context...", file=sys.stderr)
         market_context = analyze_market_context(verbose=args.verbose)
 
-        # NEW: Analyze sector performance
-        if args.verbose:
-            print(f"Analyzing sector performance...", file=sys.stderr)
-        sector = analyze_sector_performance(data, verbose=args.verbose)
-
-        # NEW: Analyze earnings timing
-        if args.verbose:
-            print(f"Checking earnings timing...", file=sys.stderr)
-        earnings_timing = analyze_earnings_timing(data)
-
-        # NEW: Analyze momentum
+        # Momentum (both crypto and stock)
         if args.verbose:
             print(f"Analyzing momentum...", file=sys.stderr)
         momentum = analyze_momentum(data)
 
-        # NEW: Analyze sentiment (parallel async fetching)
+        # Sentiment (stocks get full sentiment, crypto gets limited)
         if args.verbose:
-            print(f"Analyzing market sentiment (5 indicators in parallel)...", file=sys.stderr)
-        sentiment = asyncio.run(analyze_sentiment(data, verbose=args.verbose))
+            print(f"Analyzing market sentiment...", file=sys.stderr)
+        if is_crypto:
+            # Skip insider trading and put/call for crypto
+            sentiment = None
+        else:
+            sentiment = asyncio.run(analyze_sentiment(data, verbose=args.verbose))
 
-        # NEW v4.0.0: Check sector-specific geopolitical risks
-        sector_name = data.info.get("sector")
-        geopolitical_risk_warning, geopolitical_risk_penalty = check_sector_geopolitical_risk(
-            ticker=ticker,
-            sector=sector_name,
-            breaking_news=breaking_news,
-            verbose=args.verbose
-        )
+        # Geopolitical risks (stocks only)
+        if is_crypto:
+            geopolitical_risk_warning = None
+            geopolitical_risk_penalty = 0.0
+        else:
+            sector_name = data.info.get("sector")
+            geopolitical_risk_warning, geopolitical_risk_penalty = check_sector_geopolitical_risk(
+                ticker=ticker,
+                sector=sector_name,
+                breaking_news=breaking_news,
+                verbose=args.verbose
+            )
 
         if args.verbose:
             print(f"Components analyzed:", file=sys.stderr)
-            print(f"  Earnings: {'✓' if earnings else '✗'}", file=sys.stderr)
-            print(f"  Fundamentals: {'✓' if fundamentals else '✗'}", file=sys.stderr)
-            print(f"  Analysts: {'✓' if analysts and analysts.score else '✗'}", file=sys.stderr)
-            print(f"  Historical: {'✓' if historical else '✗'}", file=sys.stderr)
-            print(f"  Market Context: {'✓' if market_context else '✗'}", file=sys.stderr)
-            print(f"  Sector: {'✓' if sector else '✗'}", file=sys.stderr)
-            print(f"  Earnings Timing: {'✓' if earnings_timing else '✗'}", file=sys.stderr)
-            print(f"  Momentum: {'✓' if momentum else '✗'}", file=sys.stderr)
-            print(f"  Sentiment: {'✓' if sentiment else '✗'}\n", file=sys.stderr)
+            if is_crypto:
+                print(f"  Crypto Fundamentals: {'✓' if fundamentals else '✗'}", file=sys.stderr)
+                print(f"  Market Context: {'✓' if market_context else '✗'}", file=sys.stderr)
+                print(f"  Momentum: {'✓' if momentum else '✗'}", file=sys.stderr)
+                print(f"  (Earnings, Sector, Sentiment: N/A for crypto)\n", file=sys.stderr)
+            else:
+                print(f"  Earnings: {'✓' if earnings else '✗'}", file=sys.stderr)
+                print(f"  Fundamentals: {'✓' if fundamentals else '✗'}", file=sys.stderr)
+                print(f"  Analysts: {'✓' if analysts and analysts.score else '✗'}", file=sys.stderr)
+                print(f"  Historical: {'✓' if historical else '✗'}", file=sys.stderr)
+                print(f"  Market Context: {'✓' if market_context else '✗'}", file=sys.stderr)
+                print(f"  Sector: {'✓' if sector else '✗'}", file=sys.stderr)
+                print(f"  Earnings Timing: {'✓' if earnings_timing else '✗'}", file=sys.stderr)
+                print(f"  Momentum: {'✓' if momentum else '✗'}", file=sys.stderr)
+                print(f"  Sentiment: {'✓' if sentiment else '✗'}\n", file=sys.stderr)
 
         # Synthesize signal
         signal = synthesize_signal(
@@ -1960,12 +2328,176 @@ def main():
         if len(results) == 1:
             print(format_output_json(results[0]))
         else:
-            print(json.dumps([asdict(r) for r in results], indent=2))
+            output_data = [asdict(r) for r in results]
+            # Add portfolio summary if in portfolio mode
+            if portfolio_assets:
+                portfolio_summary = generate_portfolio_summary(
+                    results, portfolio_assets, portfolio_name, args.period
+                )
+                output_data = {
+                    "portfolio": portfolio_name,
+                    "assets": output_data,
+                    "summary": portfolio_summary,
+                }
+            print(json.dumps(output_data, indent=2))
     else:
         for i, signal in enumerate(results):
             if i > 0:
                 print("\n")
             print(format_output_text(signal))
+
+        # Print portfolio summary if in portfolio mode
+        if portfolio_assets:
+            print_portfolio_summary(results, portfolio_assets, portfolio_name, args.period)
+
+
+def generate_portfolio_summary(
+    results: list,
+    portfolio_assets: list[tuple[str, float, float, str]],
+    portfolio_name: str,
+    period: str | None = None,
+) -> dict:
+    """Generate portfolio summary data."""
+    # Map results by ticker
+    result_map = {r.ticker: r for r in results}
+
+    # Calculate portfolio metrics
+    total_cost = 0.0
+    total_value = 0.0
+    asset_values = []
+
+    for ticker, quantity, cost_basis, asset_type in portfolio_assets:
+        cost_total = quantity * cost_basis
+        total_cost += cost_total
+
+        # Get current price from yfinance
+        try:
+            stock = yf.Ticker(ticker)
+            current_price = stock.info.get("regularMarketPrice", 0) or 0
+            current_value = quantity * current_price
+            total_value += current_value
+            asset_values.append((ticker, current_value, cost_total, asset_type))
+        except Exception:
+            asset_values.append((ticker, 0, cost_total, asset_type))
+
+    # Calculate period returns if requested
+    period_return = None
+    if period and total_value > 0:
+        period_days = {
+            "daily": 1,
+            "weekly": 7,
+            "monthly": 30,
+            "quarterly": 90,
+            "yearly": 365,
+        }.get(period, 30)
+
+        period_return = calculate_portfolio_period_return(portfolio_assets, period_days)
+
+    # Concentration analysis
+    concentrations = []
+    if total_value > 0:
+        for ticker, value, _, asset_type in asset_values:
+            if value > 0:
+                pct = value / total_value * 100
+                if pct > 30:
+                    concentrations.append(f"{ticker}: {pct:.1f}%")
+
+    # Build summary
+    total_pnl = total_value - total_cost
+    total_pnl_pct = (total_pnl / total_cost * 100) if total_cost > 0 else 0
+
+    summary = {
+        "portfolio_name": portfolio_name,
+        "total_cost": total_cost,
+        "total_value": total_value,
+        "total_pnl": total_pnl,
+        "total_pnl_pct": total_pnl_pct,
+        "asset_count": len(portfolio_assets),
+        "concentration_warnings": concentrations if concentrations else None,
+    }
+
+    if period_return is not None:
+        summary["period"] = period
+        summary["period_return_pct"] = period_return
+
+    return summary
+
+
+def calculate_portfolio_period_return(
+    portfolio_assets: list[tuple[str, float, float, str]],
+    period_days: int,
+) -> float | None:
+    """Calculate portfolio return over a period using historical prices."""
+    try:
+        total_start_value = 0.0
+        total_current_value = 0.0
+
+        for ticker, quantity, _, _ in portfolio_assets:
+            stock = yf.Ticker(ticker)
+            hist = stock.history(period=f"{period_days + 5}d")
+
+            if hist.empty or len(hist) < 2:
+                continue
+
+            # Get price at period start and now
+            current_price = hist["Close"].iloc[-1]
+            start_price = hist["Close"].iloc[0]
+
+            total_current_value += quantity * current_price
+            total_start_value += quantity * start_price
+
+        if total_start_value > 0:
+            return (total_current_value - total_start_value) / total_start_value * 100
+
+    except Exception:
+        pass
+
+    return None
+
+
+def print_portfolio_summary(
+    results: list,
+    portfolio_assets: list[tuple[str, float, float, str]],
+    portfolio_name: str,
+    period: str | None = None,
+) -> None:
+    """Print portfolio summary in text format."""
+    summary = generate_portfolio_summary(results, portfolio_assets, portfolio_name, period)
+
+    print("\n" + "=" * 77)
+    print(f"PORTFOLIO SUMMARY: {portfolio_name}")
+    print("=" * 77)
+
+    # Value overview
+    total_cost = summary["total_cost"]
+    total_value = summary["total_value"]
+    total_pnl = summary["total_pnl"]
+    total_pnl_pct = summary["total_pnl_pct"]
+
+    print(f"\nTotal Cost:    ${total_cost:,.2f}")
+    print(f"Current Value: ${total_value:,.2f}")
+    pnl_sign = "+" if total_pnl >= 0 else ""
+    print(f"Total P&L:     {pnl_sign}${total_pnl:,.2f} ({pnl_sign}{total_pnl_pct:.1f}%)")
+
+    # Period return
+    if "period_return_pct" in summary:
+        period_return = summary["period_return_pct"]
+        period_sign = "+" if period_return >= 0 else ""
+        print(f"{summary['period'].capitalize()} Return: {period_sign}{period_return:.1f}%")
+
+    # Concentration warnings
+    if summary.get("concentration_warnings"):
+        print("\n⚠️ CONCENTRATION WARNINGS:")
+        for warning in summary["concentration_warnings"]:
+            print(f"   • {warning} (>30% of portfolio)")
+
+    # Recommendation summary
+    recommendations = {"BUY": 0, "HOLD": 0, "SELL": 0}
+    for r in results:
+        recommendations[r.recommendation] = recommendations.get(r.recommendation, 0) + 1
+
+    print(f"\nRECOMMENDATIONS: {recommendations['BUY']} BUY | {recommendations['HOLD']} HOLD | {recommendations['SELL']} SELL")
+    print("=" * 77)
 
 
 if __name__ == "__main__":

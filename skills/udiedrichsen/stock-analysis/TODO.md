@@ -2,39 +2,45 @@
 
 ## Roadmap Overview
 
-### v3.0.0 (Current) - Sentiment Analysis
+### v4.0.0 (Current) - Geopolitical Risk & News Sentiment
 ✅ 8 analysis dimensions with Fear/Greed, short interest, VIX structure, put/call ratio
+✅ Safe-haven indicators (GLD, TLT, UUP) with risk-off detection
+✅ Breaking news alerts via Google News RSS
+✅ Geopolitical risk mapping (Taiwan, China, Russia, Middle East, Banking)
+✅ Sector-specific crisis flagging with confidence penalties
+✅ 1h caching for shared indicators (Fear/Greed, VIX structure, breaking news)
+✅ Async parallel sentiment fetching (5 indicators with 10s timeouts)
 
-### v3.5.0 - Sentiment Polish
-🔧 Focus: Complete sentiment implementation (tasks 1-4)
-- Full insider trading parsing
-- Async parallel fetching (6-10s → 3-4s)
-- Caching for shared indicators
-- SEC EDGAR rate limit monitoring
+### v5.0.0 (Current) - Portfolio & Crypto
+✅ Portfolio management (create, add, remove, show assets)
+✅ Cryptocurrency support (Top 20 by market cap)
+✅ Portfolio analysis with --portfolio flag
+✅ Periodic returns (--period daily/weekly/monthly/quarterly/yearly)
+✅ Concentration warnings (>30% single asset)
+✅ Crypto fundamentals (market cap, category, BTC correlation)
 
-### v4.0.0 - Geopolitical Risk & News Sentiment
-🚀 Focus: Crisis detection and real-time awareness (tasks 7-10)
-- Geopolitical risk index
-- Sector-specific crisis mapping
-- Breaking news alerts
-- Safe-haven indicators (risk-off detection)
+### v4.1.0 - Performance & Completeness
+✅ Full insider trading parsing via edgartools (Task #1)
+✅ Market context caching with 1h TTL (Task #3b)
+🔧 SEC EDGAR rate limit monitoring (Task #4 - low priority)
 
-### Future (v5.0+)
-💡 Research phase: Social sentiment, fund flows
+### Future (v6.0+)
+💡 Research phase: Social sentiment, fund flows, on-chain metrics
 
 ---
 
 ## Sentiment Analysis Improvements
 
 ### 1. Implement Full Insider Trading Parsing
-**Status**: Placeholder
+**Status**: ✅ DONE
 **Priority**: Medium
 **Effort**: 2-3 hours
 
 **Current State**:
-- `get_insider_activity()` function exists but returns `None`
-- SEC identity is configured (`stock-analysis@clawd.bot`)
-- edgartools dependency installed
+- ✅ `get_insider_activity()` fetches Form 4 filings via edgartools
+- ✅ SEC identity configured (`stock-analysis@clawd.bot`)
+- ✅ Aggregates buys/sells over 90-day window
+- ✅ Scoring logic: strong buying (+0.8), moderate (+0.4), neutral (0), moderate selling (-0.4), strong (-0.8)
 
 **Tasks**:
 - [ ] Research edgartools API for Form 4 parsing
@@ -58,14 +64,14 @@
 ---
 
 ### 2. Add Parallel Async Fetching
-**Status**: Not Started
+**Status**: ✅ DONE (sentiment indicators)
 **Priority**: High
 **Effort**: 4-6 hours
 
 **Current State**:
-- Sequential fetching: ~6-10s per stock
-- 5 sentiment indicators fetched one by one
-- No async/await implementation
+- ✅ Sentiment indicators fetched in parallel via `asyncio.gather()`
+- ✅ 10s timeout per indicator
+- Main data fetches (yfinance) still sequential (acceptable)
 
 **Tasks**:
 - [ ] Convert sentiment helper functions to async
@@ -88,14 +94,15 @@
 ---
 
 ### 3. Add Caching for Shared Indicators
-**Status**: Not Started
+**Status**: ✅ DONE (sentiment + breaking news)
 **Priority**: Medium
 **Effort**: 2-3 hours
 
 **Current State**:
-- Fear & Greed Index fetched per stock (same value)
-- VIX term structure fetched per stock (same value)
-- No caching mechanism
+- ✅ Fear & Greed Index cached (1h TTL)
+- ✅ VIX term structure cached (1h TTL)
+- ✅ Breaking news cached (1h TTL)
+- ✅ Market context (VIX/SPY/QQQ/GLD/TLT/UUP) cached (1h TTL)
 
 **Tasks**:
 - [ ] Design cache structure (simple dict or functools.lru_cache)
@@ -161,7 +168,7 @@ What we **don't** have yet:
 ---
 
 ### 7. Geopolitical Risk Index
-**Status**: Not Started
+**Status**: ✅ DONE (keyword-based)
 **Priority**: High
 **Effort**: 8-12 hours
 
@@ -200,7 +207,7 @@ Option B: Scan news APIs (NewsAPI, GDELT) for geopolitical keywords
 ---
 
 ### 8. Sector-Specific Crisis Mapping
-**Status**: Not Started
+**Status**: ✅ DONE
 **Priority**: High
 **Effort**: 6-8 hours
 
@@ -247,7 +254,7 @@ Option B: Scan news APIs (NewsAPI, GDELT) for geopolitical keywords
 ---
 
 ### 9. Breaking News Check
-**Status**: Not Started
+**Status**: ✅ DONE
 **Priority**: Medium
 **Effort**: 4-6 hours
 
@@ -290,7 +297,7 @@ Option B: Scan news APIs (NewsAPI, GDELT) for geopolitical keywords
 ---
 
 ### 10. Safe-Haven Indicators
-**Status**: Not Started
+**Status**: ✅ DONE
 **Priority**: Medium
 **Effort**: 3-4 hours
 
@@ -362,36 +369,26 @@ THEN Market Regime = RISK-OFF
 
 ## Implementation Priorities
 
-### Quick Wins (< 4 hours each)
-1. **Task #4** - SEC EDGAR rate limit monitoring (1-2h)
-2. **Task #3** - Caching for shared indicators (2-3h)
-3. **Task #10** - Safe-haven indicators (3-4h)
+### v4.1.0 Complete
+- ✅ Task #1 - Insider trading parsing via edgartools
+- ✅ Task #3b - Market context caching (1h TTL)
+- 🔧 Task #4 - SEC EDGAR rate limits (low priority, only if hitting limits)
 
-### Medium Effort, High Impact
-1. **Task #2** - Async parallel fetching (4-6h) - **BIGGEST PERF WIN**
-2. **Task #9** - Breaking news check (4-6h)
-3. **Task #8** - Sector-specific crisis mapping (6-8h)
-
-### Complex Features
-1. **Task #7** - Geopolitical risk index (8-12h)
-2. **Task #1** - Full insider trading parsing (needs edgartools research)
-
-### Suggested Implementation Order for v3.5.0
-1. Task #2 (Async) - Get performance win first
-2. Task #3 (Caching) - Amplify async benefits
-3. Task #1 (Insider trading) - Complete sentiment suite
-4. Task #4 (Rate limits) - Production safety
-
-### Suggested Implementation Order for v4.0.0
-1. Task #10 (Safe-haven) - Easiest, complements existing VIX
-2. Task #9 (Breaking news) - Real-time protection
-3. Task #8 (Sector crisis) - Targeted risk warnings
-4. Task #7 (Geopolitical) - Comprehensive risk framework
+### Completed in v4.0.0
+- ✅ Task #2 - Async parallel fetching (sentiment)
+- ✅ Task #3 - Caching for shared indicators (sentiment + news)
+- ✅ Task #7 - Geopolitical risk (keyword-based)
+- ✅ Task #8 - Sector-specific crisis mapping
+- ✅ Task #9 - Breaking news check
+- ✅ Task #10 - Safe-haven indicators
 
 ---
 
 ## Version History
 
+- **v5.0.0** (2026-01-16): Portfolio management, cryptocurrency support (Top 20), periodic analysis
+- **v4.1.0** (2026-01-16): Full insider trading parsing via edgartools, market context caching
+- **v4.0.0** (2026-01-15): Geopolitical risk, breaking news, safe-haven detection, sector crisis mapping
 - **v3.0.0** (2026-01-15): Sentiment analysis added with 5 indicators (3-4 typically working)
 - **v2.0.0**: Market context, sector performance, earnings timing, momentum
 - **v1.0.0**: Initial release with earnings, fundamentals, analysts, historical

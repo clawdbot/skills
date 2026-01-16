@@ -1,13 +1,13 @@
 ---
 name: stock-analysis
-description: Analyze US stocks using Yahoo Finance data with 8 dimensions including earnings, fundamentals, analyst sentiment, sentiment indicators (Fear/Greed, VIX, insider trading), safe-haven tracking (risk-off detection), breaking news alerts, and geopolitical sector risk mapping. Detects crisis keywords (Taiwan, China, Russia, Middle East, banking) and flags affected tickers/sectors with automatic confidence penalties. Runtime 3-5s with async fetching. Use for stock analysis, earnings reactions, geopolitical risk assessment, or investment signals.
+description: Analyze stocks and cryptocurrencies using Yahoo Finance data. Supports portfolio management (create, add, remove assets), crypto analysis (Top 20 by market cap), and periodic performance reports (daily/weekly/monthly/quarterly/yearly). 8 analysis dimensions for stocks, 3 for crypto. Use for stock analysis, portfolio tracking, earnings reactions, or crypto monitoring.
 homepage: https://finance.yahoo.com
 metadata: {"clawdbot":{"emoji":"📈","requires":{"bins":["uv"],"env":[]},"install":[{"id":"uv-brew","kind":"brew","formula":"uv","bins":["uv"],"label":"Install uv (brew)"}]}}
 ---
 
-# Stock Analysis
+# Stock Analysis (v5.0)
 
-Analyze US stocks using Yahoo Finance data for quick actionable insights during earnings season.
+Analyze US stocks and cryptocurrencies using Yahoo Finance data. Includes portfolio management, crypto support, and periodic analysis.
 
 ## Quick Start
 
@@ -26,12 +26,77 @@ Compare multiple tickers:
 uv run {baseDir}/scripts/analyze_stock.py AAPL MSFT GOOGL
 ```
 
+## Cryptocurrency Analysis (v5.0)
+
+Analyze top 20 cryptocurrencies by market cap:
+
+```bash
+uv run {baseDir}/scripts/analyze_stock.py BTC-USD
+uv run {baseDir}/scripts/analyze_stock.py ETH-USD SOL-USD
+```
+
+**Supported Cryptos:**
+BTC-USD, ETH-USD, BNB-USD, SOL-USD, XRP-USD, ADA-USD, DOGE-USD, AVAX-USD, DOT-USD, MATIC-USD, LINK-USD, ATOM-USD, UNI-USD, LTC-USD, BCH-USD, XLM-USD, ALGO-USD, VET-USD, FIL-USD, NEAR-USD
+
+**Crypto Analysis Dimensions:**
+- Market cap (large/mid/small classification)
+- Category (Smart Contract L1, DeFi, Payment, etc.)
+- BTC correlation (30-day)
+- Momentum (RSI, price range)
+- Market context (VIX, general market regime)
+
+## Portfolio Management (v5.0)
+
+Create and manage portfolios with mixed assets (stocks + crypto):
+
+```bash
+# Create portfolio
+uv run {baseDir}/scripts/portfolio.py create "My Portfolio"
+
+# Add assets
+uv run {baseDir}/scripts/portfolio.py add AAPL --quantity 100 --cost 150.00
+uv run {baseDir}/scripts/portfolio.py add BTC-USD --quantity 0.5 --cost 40000 --portfolio "My Portfolio"
+
+# View holdings with current P&L
+uv run {baseDir}/scripts/portfolio.py show
+
+# Update/remove assets
+uv run {baseDir}/scripts/portfolio.py update AAPL --quantity 150
+uv run {baseDir}/scripts/portfolio.py remove BTC-USD
+
+# List/delete portfolios
+uv run {baseDir}/scripts/portfolio.py list
+uv run {baseDir}/scripts/portfolio.py delete "My Portfolio"
+```
+
+**Portfolio Storage:** `~/.clawdbot/skills/stock-analysis/portfolios.json`
+
+## Portfolio Analysis (v5.0)
+
+Analyze all assets in a portfolio with optional period returns:
+
+```bash
+# Analyze portfolio
+uv run {baseDir}/scripts/analyze_stock.py --portfolio "My Portfolio"
+
+# With period returns (daily/weekly/monthly/quarterly/yearly)
+uv run {baseDir}/scripts/analyze_stock.py --portfolio "My Portfolio" --period weekly
+uv run {baseDir}/scripts/analyze_stock.py -p "My Portfolio" --period monthly
+```
+
+**Portfolio Summary includes:**
+- Total cost, current value, P&L
+- Period return (if specified)
+- Concentration warnings (>30% in single asset)
+- Recommendation summary (BUY/HOLD/SELL counts)
+
 **Examples:**
 - ✅ CORRECT: `uv run {baseDir}/scripts/analyze_stock.py BAC`
+- ✅ CORRECT: `uv run {baseDir}/scripts/analyze_stock.py BTC-USD`
 - ❌ WRONG: `uv run {baseDir}/scripts/analyze_stock.py === BANK OF AMERICA (BAC) - Q4 2025 EARNINGS ===`
 - ❌ WRONG: `uv run {baseDir}/scripts/analyze_stock.py "Bank of America"`
 
-Use the ticker symbol only (e.g., BAC, not "Bank of America").
+Use the ticker symbol only (e.g., BAC, not "Bank of America"). For crypto, use the -USD suffix (e.g., BTC-USD).
 
 ## Analysis Components
 
