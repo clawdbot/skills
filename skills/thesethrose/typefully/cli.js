@@ -13,7 +13,7 @@
  * Supports: X, LinkedIn, Mastodon, Threads, Bluesky
  */
 
-const API_BASE = 'https://api.typefully.com';
+const API_BASE = 'https://api.typefully.com/v2';
 
 // Compliance notice
 const COMPLIANCE_NOTICE = `
@@ -187,32 +187,102 @@ async function cmdDraft(socialSetId, draftId) {
 }
 
 async function cmdCreateDraft(text, options = {}) {
-  const { socialSetId, schedule, title, share, thread, replyTo, community, now } = options;
+  const { socialSetId, schedule, title, share, replyTo, community, now, x, linkedin, threads, bluesky, mastodon, all } = options;
   
   if (!socialSetId) {
     logError('--social-set-id required. Run: typefully social-sets');
     process.exit(1);
   }
   
-  if (!text) {
+  // If no platform-specific text provided, use positional text for X only
+  const hasPlatformText = x || linkedin || threads || bluesky || mastodon || all;
+  
+  if (!hasPlatformText && !text) {
     logError('Post text required');
     process.exit(1);
   }
   
-  // Build posts array (thread = multi-line)
-  const posts = thread 
-    ? text.split(/\n/).filter(t => t.trim()).map(t => ({ text: t.trim() }))
-    : [{ text }];
+  // Build posts array from text (pass through with newlines preserved)
+  const buildPosts = (txt) => {
+    if (!txt) return [];
+    // Parse escape sequences (\n -> actual newline)
+    const unescaped = txt.replace(/\\n/g, '\n').replace(/\\t/g, '\t');
+    // Return single post with newlines preserved
+    return [{ text: unescaped }];
+  };
   
-  // Build X settings
-  const xSettings = {};
-  if (replyTo) xSettings.reply_to_url = replyTo;
-  if (community) xSettings.community_id = community;
+  // Build platforms object
+  const platforms = {};
+  
+  // X platform
+  if (x || (!hasPlatformText && text)) {
+    const xText = x || text;
+    platforms.x = {
+      enabled: true,
+      posts: buildPosts(xText)
+    };
+    // Add X-specific settings if provided
+    if (replyTo || community) {
+      platforms.x.settings = {};
+      if (replyTo) platforms.x.settings.reply_to_url = replyTo;
+      if (community) platforms.x.settings.community_id = community;
+    }
+  } else {
+    platforms.x = { enabled: false };
+  }
+  
+  // LinkedIn platform
+  if (linkedin) {
+    platforms.linkedin = {
+      enabled: true,
+      posts: buildPosts(linkedin)
+    };
+  } else if (!hasPlatformText) {
+    platforms.linkedin = { enabled: false };
+  }
+  
+  // Threads platform
+  if (threads) {
+    platforms.threads = {
+      enabled: true,
+      posts: buildPosts(threads)
+    };
+  } else if (!hasPlatformText) {
+    platforms.threads = { enabled: false };
+  }
+  
+  // Bluesky platform
+  if (bluesky) {
+    platforms.bluesky = {
+      enabled: true,
+      posts: buildPosts(bluesky)
+    };
+  } else if (!hasPlatformText) {
+    platforms.bluesky = { enabled: false };
+  }
+  
+  // Mastodon platform
+  if (mastodon) {
+    platforms.mastodon = {
+      enabled: true,
+      posts: buildPosts(mastodon)
+    };
+  } else if (!hasPlatformText) {
+    platforms.mastodon = { enabled: false };
+  }
+  
+  // Post to all platforms with same text
+  if (all) {
+    const allPosts = buildPosts(all);
+    platforms.x = { enabled: true, posts: allPosts };
+    platforms.linkedin = { enabled: true, posts: allPosts };
+    platforms.threads = { enabled: true, posts: allPosts };
+    platforms.bluesky = { enabled: true, posts: allPosts };
+    platforms.mastodon = { enabled: true, posts: allPosts };
+  }
   
   const body = {
-    platforms: {
-      x: { enabled: true, posts, settings: Object.keys(xSettings).length ? xSettings : undefined }
-    },
+    platforms,
     publish_at: now ? 'now' : (schedule || undefined),
     draft_title: title,
     share: share === true
@@ -220,14 +290,22 @@ async function cmdCreateDraft(text, options = {}) {
   
   const draft = await api(`/social-sets/${socialSetId}/drafts`, 'POST', body);
   
+  // Log enabled platforms
+  const enabledPlatforms = Object.entries(platforms)
+    .filter(([_, p]) => p.enabled)
+    .map(([name]) => name.toUpperCase())
+    .join(', ');
+  
   log('\n✅ Draft created!', 'green');
   log(`   ID: ${draft.id}`, 'cyan');
+  log(`   Platforms: ${enabledPlatforms || 'X'}`, 'cyan');
   log(`   Status: ${draft.status}`);
   log(`   Preview: ${(draft.preview || '').substring(0, 75)}...`);
   
   if (draft.status === 'published') {
     log(`   🎉 Published immediately!`, 'green');
     if (draft.x_published_url) log(`   X URL: ${draft.x_published_url}`, 'cyan');
+    if (draft.linkedin_published_url) log(`   LinkedIn URL: ${draft.linkedin_published_url}`, 'cyan');
   } else if (draft.scheduled_date) {
     log(`   Scheduled: ${new Date(draft.scheduled_date).toLocaleString()}`, 'yellow');
     log(`   Review & publish at: ${draft.private_url}`, 'dim');
@@ -358,9 +436,15 @@ ${colors.bright}USER & ACCOUNTS:${colors.reset}
   typefully social-set <id>         Get account details
 
 ${colors.bright}CREATE DRAFTS (SAFE - Review before publishing):${colors.reset}
-  typefully create-draft "text"           Create draft (SAVED as draft)
-  typefully create-draft "text" --now     Create AND publish immediately
-  typefully create-draft "text" --now     ⚠️ Publishes instantly - be sure!
+  typefully create-draft "text"                   Create draft for X only
+  typefully create-draft "text" --now             Create AND publish immediately
+  typefully create-draft --all "text"             Post to ALL platforms (X, LinkedIn, Threads, Bluesky, Mastodon)
+  typefully create-draft --x "1/ line1\n2/ line2" Multi-line creates thread on X
+
+${colors.bright}MULTI-PLATFORM POSTS:${colors.reset}
+  typefully create-draft --x "X thread..." --linkedin "LinkedIn post..." 
+  typefully create-draft --x "1/ X\n2/ thread" --linkedin "Combined" --bluesky "Bluesky"
+  typefully create-draft --all "Same post to ALL platforms"
 
 ${colors.bright}MANAGE DRAFTS:${colors.reset}
   typefully drafts                       List all drafts
@@ -381,7 +465,6 @@ ${colors.bright}SCHEDULING:${colors.reset}
 ${colors.bright}CONTENT OPTIONS:${colors.reset}
   --title <text>          Draft title (internal, not posted)
   --share                 Generate public share URL
-  --thread                Multi-line thread (each line = tweet)
   --reply-to <url>        Reply to existing X post
   --community <id>        Post to X community
 
@@ -392,10 +475,20 @@ ${colors.bright}EXAMPLES:${colors.reset}
   ${colors.dim}# Create a draft (safe - review first)${colors.reset}
   typefully create-draft "I'm an AI building in public! 🤖" --social-set-id 12345
 
-  ${colors.dim}# Create a thread${colors.reset}
+  ${colors.dim}# Create a thread (newlines = separate tweets)${colors.reset}
   typefully create-draft "1/ Building my first product...
   2/ It's a COBOL parser API...
-  3/ Follow along! 🚀" --social-set-id 12345 --thread
+  3/ Follow along! 🚀" --social-set-id 12345
+
+  ${colors.dim}# Post same content to all platforms${colors.reset}
+  typefully create-draft "Check out my latest project! 🚀" --social-set-id 12345 --all
+
+  ${colors.dim}# Different content per platform${colors.reset}
+  typefully create-draft \
+    --x "1/ Thread: Here's what I'm building\n2/ The problem it solves\n3/ Link in bio 🚀" \
+    --linkedin "Excited to share my latest project. It solves [problem] and helps [audience]. Link in bio! 🚀" \
+    --bluesky "Building in public thread 👇" \
+    --social-set-id 12345
 
   ${colors.dim}# Publish immediately${colors.reset}
   typefully create-draft "🎉 Launch day! Our API is live!" --social-set-id 12345 --now
@@ -444,7 +537,7 @@ async function main() {
     if (arg.startsWith('--')) {
       const key = arg.substring(2).replace(/-([a-z])/g, (_, c) => c.toUpperCase());
       
-      const valueArgs = ['schedule', 'socialSetId', 'title', 'replyTo', 'community', 'limit', 'offset', 'status', 'orderBy', 'tag'];
+      const valueArgs = ['schedule', 'socialSetId', 'title', 'replyTo', 'community', 'limit', 'offset', 'status', 'orderBy', 'tag', 'x', 'linkedin', 'threads', 'bluesky', 'mastodon', 'all'];
       const flagArgs = ['share', 'thread', 'now', 'nextFreeSlot'];
       
       if (valueArgs.includes(key)) {
@@ -453,13 +546,9 @@ async function main() {
       } else if (flagArgs.includes(key)) {
         options[key] = true;
         i++;
-      } else if (key === 'social-set-id') { options.socialSetId = args[i + 1]; i += 2; }
-      else if (key === 'reply-to') { options.replyTo = args[i + 1]; i += 2; }
-      else if (key === 'community') { options.community = args[i + 1]; i += 2; }
-      else if (key === 'limit') { options.limit = parseInt(args[i + 1]); i += 2; }
-      else if (key === 'offset') { options.offset = parseInt(args[i + 1]); i += 2; }
-      else if (key === 'order-by') { options.orderBy = args[i + 1]; i += 2; }
-      else { i++; }
+      } else {
+        i++;
+      }
     } else if (!arg.startsWith('-') && command !== 'create-draft' && command !== 'update-draft' && command !== 'create-tag') {
       if (['social-set', 'draft', 'delete-draft', 'delete-tag', 'media-status'].includes(command)) {
         options.id = arg;
@@ -470,10 +559,11 @@ async function main() {
     }
   }
   
-  // Handle positional text
+  // Handle positional text (everything before first --flag after command name)
   if (command === 'create-draft') {
-    const textStart = args.findIndex(a => !a.startsWith('-'));
-    text = args.slice(textStart + 1).join(' ').replace(/^["']|["']$/g, '');
+    // Find first flag after command name, take everything before it as text
+    const textEnd = args.findIndex((a, idx) => idx > 0 && a.startsWith('-'));
+    text = textEnd > 0 ? args.slice(1, textEnd).join(' ').replace(/^["']|["']$/g, '') : '';
   } else if (command === 'update-draft') {
     options.id = args[1];
     text = args.slice(2).join(' ');
