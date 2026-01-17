@@ -1,13 +1,18 @@
 {
   "owner": "johntheyoung",
   "slug": "roadrunner",
-  "displayName": "Roadrunner",
+  "displayName": "roadrunner",
   "latest": {
-    "version": "0.5.1",
-    "publishedAt": 1768612740770,
-    "commit": "https://github.com/clawdbot/skills/commit/04de8513abf5527954646fcd0278d1764524082d"
+    "version": "0.5.2",
+    "publishedAt": 1768614780909,
+    "commit": null
   },
   "history": [
+    {
+      "version": "0.5.1",
+      "publishedAt": 1768612740770,
+      "commit": "https://github.com/clawdbot/skills/commit/04de8513abf5527954646fcd0278d1764524082d"
+    },
     {
       "version": "0.4.0",
       "publishedAt": 1768586611612,
