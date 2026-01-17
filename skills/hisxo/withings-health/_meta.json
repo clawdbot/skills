@@ -3,9 +3,15 @@
   "slug": "withings-health",
   "displayName": "withings-health",
   "latest": {
-    "version": "1.0.0",
-    "publishedAt": 1768685181599,
-    "commit": "https://github.com/clawdbot/skills/commit/c948d7bd44d727a0df26fd5922cc969e989c71fd"
+    "version": "1.0.1",
+    "publishedAt": 1768685634025,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "1.0.0",
+      "publishedAt": 1768685181599,
+      "commit": "https://github.com/clawdbot/skills/commit/c948d7bd44d727a0df26fd5922cc969e989c71fd"
+    }
+  ]
 }
