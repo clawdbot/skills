@@ -2,12 +2,17 @@
 name: roadrunner
 description: Beeper Desktop CLI for chats, messages, search, and reminders.
 homepage: https://github.com/johntheyoung/roadrunner
-metadata: {"clawdbot":{"emoji":"🐦💨","requires":{"bins":["rr"]},"install":[{"id":"go","kind":"go","module":"github.com/johntheyoung/roadrunner/cmd/rr@latest","bins":["rr"],"label":"Install rr (go)"}]}}
+metadata: {"clawdbot":{"emoji":"🐦💨","requires":{"bins":["rr"]},"install":[{"id":"brew","kind":"brew","formula":"johntheyoung/tap/roadrunner","bins":["rr"],"label":"Install rr (brew)"},{"id":"go","kind":"go","module":"github.com/johntheyoung/roadrunner/cmd/rr@latest","bins":["rr"],"label":"Install rr (go)"}]}}
 ---
 
 # roadrunner (rr)
 
-Use `rr` when the user wants to operate Beeper Desktop (local API). Prefer `--json` for agent use.
+Use `rr` when the user explicitly wants to operate Beeper Desktop via the local API (send, search, list chats/messages, reminders, focus).
+Prefer `--json` and `--no-input` for agent use.
+
+Safety
+- Require explicit recipient (chat ID) and message text before sending.
+- Confirm or ask a clarifying question if the chat ID is ambiguous.
 
 Setup (once)
 - `rr auth set <token>`
@@ -30,7 +35,11 @@ Common commands
 - Search messages (filters): `rr messages search --sender=me --date-after="2024-07-01T00:00:00Z" --media-types=image --json`
 - Send message: `rr messages send "!chatid:beeper.com" "Hello!"`
 - Reply to message: `rr messages send "!chatid:beeper.com" "Thanks!" --reply-to "<message-id>"`
+- Send message from file: `rr messages send "!chatid:beeper.com" --text-file ./message.txt`
+- Send message from stdin: `cat message.txt | rr messages send "!chatid:beeper.com" --stdin`
+- Tail messages (polling): `rr messages tail "!chatid:beeper.com" --interval 2s --stop-after 30s --json`
 - Draft message (pre-fill without sending): `rr focus --chat-id="!chatid:beeper.com" --draft-text="Hello!"`
+- Draft message from file: `rr focus --chat-id="!chatid:beeper.com" --draft-text-file ./draft.txt`
 - Draft with attachment: `rr focus --chat-id="!chatid:beeper.com" --draft-attachment="/path/to/file.jpg"`
 - Download attachment: `rr assets download "mxc://example.org/abc123" --dest "./attachment.jpg"`
 - Reminders: `rr reminders set "!chatid:beeper.com" "2h"` / `rr reminders clear "!chatid:beeper.com"`
@@ -58,3 +67,6 @@ Notes
 - `BEEPER_URL` overrides API base URL; `BEEPER_TIMEOUT` sets timeout in seconds.
 - JSON/Plain output goes to stdout; errors/hints go to stderr.
 - Destructive commands prompt unless `--force`; `--no-input`/`BEEPER_NO_INPUT` fails without `--force`.
+- Use `--fail-if-empty` on list/search commands to exit with code 1 if no results.
+- Use `--fields` with `--plain` to select columns (comma-separated).
+- In bash/zsh, `!` triggers history expansion. Prefer single quotes, or disable history expansion (`set +H` in bash, `setopt NO_HIST_EXPAND` in zsh).
