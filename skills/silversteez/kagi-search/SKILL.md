@@ -15,6 +15,8 @@ Web search using the Kagi Search API with a clean, readable output format.
 ```bash
 export KAGI_API_KEY="your_api_key"
 kagi-search "your search query"
+# or run directly:
+python3 scripts/kagi-search.py "your search query"
 ```
 
 ## Features
@@ -67,8 +69,8 @@ export KAGI_API_KEY="your_api_key"
 **PATH access:**
 ```bash
 # Make executable and add to PATH
-chmod +x scripts/kagi-search
-cp scripts/kagi-search ~/.local/bin/
+chmod +x scripts/kagi-search.py
+cp scripts/kagi-search.py ~/.local/bin/kagi-search
 ```
 
 ## Requirements
