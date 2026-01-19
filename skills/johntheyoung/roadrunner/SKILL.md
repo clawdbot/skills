@@ -8,11 +8,12 @@ metadata: {"clawdbot":{"emoji":"🐦💨","requires":{"bins":["rr"]},"install":[
 # roadrunner (rr)
 
 Use `rr` when the user explicitly wants to operate Beeper Desktop via the local API (send, search, list chats/messages, reminders, focus).
-Prefer `--json` and `--no-input` for agent use.
+Prefer `--agent` for agent use (forces JSON, envelope, no-input, readonly).
 
 Safety
 - Require explicit recipient (chat ID) and message text before sending.
 - Confirm or ask a clarifying question if the chat ID is ambiguous.
+- Use `--agent` for safe agent defaults: `rr --agent --enable-commands=chats,messages,status chats list`
 - Use `--readonly` to block writes: `rr --readonly chats list --json`
 - Use `--enable-commands` to allowlist: `rr --enable-commands=chats,messages chats list --json`
 - Use `--envelope` for structured errors: `rr --json --envelope chats get "!chatid"`
@@ -24,8 +25,11 @@ Setup (once)
 
 Common commands
 - List accounts: `rr accounts list --json`
+- Capabilities: `rr capabilities --json`
 - Search contacts: `rr contacts search "<account-id>" "Alice" --json`
+- Search contacts (flag): `rr contacts search "Alice" --account-id="<account-id>" --json`
 - Resolve contact: `rr contacts resolve "<account-id>" "Alice" --json`
+- Resolve contact (flag): `rr contacts resolve "Alice" --account-id="<account-id>" --json`
 - List chats: `rr chats list --json`
 - Search chats: `rr chats search "John" --json`
 - Search chats (filters): `rr chats search --inbox=primary --unread-only --json`
@@ -35,6 +39,8 @@ Common commands
 - Get chat: `rr chats get "!chatid:beeper.com" --json`
 - Create chat (single): `rr chats create "<account-id>" --participant "<user-id>"`
 - Create chat (group): `rr chats create "<account-id>" --participant "<user-a>" --participant "<user-b>" --type group --title "Project Chat" --message "Welcome!"`
+- Default account for commands: `rr --account="imessage:+123" chats list --json`
+- Account aliases: `rr accounts alias set work "slack:T123"`
 - List messages: `rr messages list "!chatid:beeper.com" --json`
 - List messages (download media): `rr messages list "!chatid:beeper.com" --download-media --download-dir ./media --json`
 - Search messages: `rr messages search "dinner" --json`
@@ -70,6 +76,7 @@ Pagination
 Notes
 - Requires Beeper Desktop running; token from app settings.
 - Token stored at `~/.config/beeper/config.json`. `BEEPER_TOKEN` overrides.
+- `BEEPER_ACCOUNT` sets the default account ID (aliases supported).
 - Message search is literal word match (not semantic).
 - `rr contacts resolve` is strict and fails on ambiguous names; resolve by ID after `contacts search` when needed.
 - If a DM title shows your own Matrix ID, use `--scope=participants` to find by name.
@@ -85,4 +92,5 @@ Notes
 - Use `--fields` with `--plain` to select columns (comma-separated).
 - In bash/zsh, `!` triggers history expansion. Prefer single quotes, or disable history expansion (`set +H` in bash, `setopt NO_HIST_EXPAND` in zsh).
 - `rr version --json` returns `features` array for capability discovery.
+- `rr capabilities --json` returns full CLI capability metadata.
 - Envelope error codes: `AUTH_ERROR`, `NOT_FOUND`, `VALIDATION_ERROR`, `CONNECTION_ERROR`, `INTERNAL_ERROR`.
