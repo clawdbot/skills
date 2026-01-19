@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clawdbot Screen Share</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .container {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            max-width: 800px;
+            width: 100%;
+            padding: 40px;
+        }
+        h1 { color: #333; margin-bottom: 10px; font-size: 28px; }
+        .subtitle { color: #666; margin-bottom: 30px; }
+        .status {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .status.inactive { background: #f0f0f0; color: #666; }
+        .status.active { background: #d4edda; color: #155724; }
+        .indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: currentColor;
+        }
+        .status.active .indicator { animation: pulse 2s infinite; }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            transition: all 0.3s;
+        }
+        button:hover { background: #5568d3; transform: translateY(-2px); }
+        button:disabled { background: #ccc; cursor: not-allowed; transform: none; }
+        #preview {
+            width: 100%;
+            border-radius: 8px;
+            margin-top: 20px;
+            display: none;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        .info {
+            background: #e7f3ff;
+            border-left: 4px solid #2196F3;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 4px;
+        }
+        .info strong { display: block; margin-bottom: 5px; color: #1976D2; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🖥️ Screen Share</h1>
+        <div class="subtitle">Share your screen with Clawdbot for real-time analysis</div>
+        
+        <div class="info">
+            <strong>How it works:</strong>
+            Click "Start Sharing" and select which screen/window to share. 
+            Clawdbot can then analyze what you're seeing when you ask questions.
+        </div>
+
+        <div id="status" class="status inactive">
+            <div class="indicator"></div>
+            <span id="statusText">Not sharing</span>
+        </div>
+
+        <button id="shareBtn">Start Sharing</button>
+        <button id="stopBtn" style="display:none; background:#dc3545;">Stop Sharing</button>
+
+        <video id="preview" autoplay muted></video>
+        <canvas id="capture" hidden></canvas>
+    </div>
+
+    <script>
+        let stream = null;
+        let captureInterval = null;
+        const shareBtn = document.getElementById('shareBtn');
+        const stopBtn = document.getElementById('stopBtn');
+        const preview = document.getElementById('preview');
+        const capture = document.getElementById('capture');
+        const status = document.getElementById('status');
+        const statusText = document.getElementById('statusText');
+
+        shareBtn.onclick = async () => {
+            try {
+                stream = await navigator.mediaDevices.getDisplayMedia({
+                    video: { width: 1920, height: 1080 },
+                    audio: false
+                });
+
+                preview.srcObject = stream;
+                preview.style.display = 'block';
+                shareBtn.style.display = 'none';
+                stopBtn.style.display = 'block';
+                status.className = 'status active';
+                statusText.textContent = 'Sharing - Agent can analyze your screen';
+
+                // Capture frames every 3 seconds
+                captureInterval = setInterval(() => {
+                    const ctx = capture.getContext('2d');
+                    capture.width = preview.videoWidth;
+                    capture.height = preview.videoHeight;
+                    ctx.drawImage(preview, 0, 0);
+                    
+                    const frameData = capture.toDataURL('image/png').split(',')[1];
+                    
+                    // Send to backend
+                    fetch('/api/screen-frame', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            frame: frameData,
+                            timestamp: Date.now(),
+                            width: capture.width,
+                            height: capture.height
+                        })
+                    }).catch(err => console.log('Frame send failed:', err));
+                }, 3000);
+
+                // Handle stream end
+                stream.getVideoTracks()[0].onended = stopSharing;
+
+            } catch (err) {
+                alert('Screen sharing failed: ' + err.message);
+            }
+        };
+
+        function stopSharing() {
+            if (stream) {
+                stream.getTracks().forEach(track => track.stop());
+                stream = null;
+            }
+            if (captureInterval) {
+                clearInterval(captureInterval);
+                captureInterval = null;
+            }
+            preview.style.display = 'none';
+            shareBtn.style.display = 'block';
+            stopBtn.style.display = 'none';
+            status.className = 'status inactive';
+            statusText.textContent = 'Not sharing';
+        }
+
+        stopBtn.onclick = stopSharing;
+    </script>
+</body>
+</html>

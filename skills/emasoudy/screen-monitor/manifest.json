@@ -1,0 +1,39 @@
+{
+  "name": "screen-monitor",
+  "version": "1.0.1",
+  "description": "Browser-based screen sharing with vision analysis. Works with any multimodal LLM from any PC.",
+  "author": "Essam Masoudy",
+  "homepage": "https://github.com/emasoudy/clawdbot-skills",
+  "repository": "https://github.com/emasoudy/clawdbot-skills",
+  "license": "MIT",
+  "keywords": ["screen-sharing", "vision", "webrtc", "multimodal", "analysis"],
+  "clawdhub": {
+    "category": "vision",
+    "featured": true
+  },
+  "dependencies": {
+    "system": ["curl", "node"],
+    "system_optional": ["imagemagick"],
+    "clawdbot": ">=2026.1.17",
+    "model_features": ["vision"]
+  },
+  "ports": {
+    "backend": 18795
+  },
+  "install": [
+    {
+      "check": "command -v import",
+      "install": "apt-get install imagemagick",
+      "platforms": ["linux"],
+      "optional": true,
+      "note": "Only needed for OS screenshot fallback"
+    }
+  ],
+  "features": {
+    "browser_screen_share": true,
+    "os_screenshot_fallback": true,
+    "model_agnostic": true,
+    "webrtc": true,
+    "remote_access": true
+  }
+}
