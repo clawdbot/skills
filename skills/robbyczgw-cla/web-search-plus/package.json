@@ -1,6 +1,6 @@
 {
   "name": "@clawdbot/web-search-plus",
-  "version": "1.0.6",
+  "version": "1.0.8",
   "description": "Unified search skill supporting Serper (Google results), Tavily (AI-optimized research), and Exa (neural semantic search). Choose the right provider for your task - product specs, deep research, or similar page discovery. Includes images, domain filters, time ranges, and comprehensive documentation.",
   "keywords": [
     "clawdbot",
@@ -15,7 +15,7 @@
     "web-search",
     "ai-agent"
   ],
-  "author": "Robby <robby@clawdbot.com>",
+  "author": "Robby <robbyczgw@gmail.com>",
   "license": "MIT",
   "repository": {
     "type": "git",
