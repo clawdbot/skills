@@ -200,13 +200,6 @@ All scripts support `--help` for detailed options and `--json` for machine-reada
 - Python 3
 - IDB (optional, for interactive features)
 
-## Documentation
-
-- **SKILL.md** (this file) - Script reference and quick start
-- **README.md** - Installation and examples
-- **CLAUDE.md** - Architecture and implementation details
-- **references/** - Deep documentation on specific topics
-- **examples/** - Complete automation workflows
 
 ## Key Design Principles
 
@@ -221,7 +214,3 @@ All scripts support `--help` for detailed options and `--json` for machine-reada
 **Structured Data**: Scripts output JSON or formatted text, not raw logs. Easy to parse and integrate.
 
 **Auto-Learning**: Build system remembers your device preference. Configuration stored per-project.
-
----
-
-Use these scripts directly or let Claude Code invoke them automatically when your request matches the skill description.

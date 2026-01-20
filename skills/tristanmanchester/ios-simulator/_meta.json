@@ -3,9 +3,15 @@
   "slug": "ios-simulator",
   "displayName": "iOS Simulator Skill",
   "latest": {
-    "version": "0.1.0",
-    "publishedAt": 1768937264147,
-    "commit": "https://github.com/clawdbot/skills/commit/2903b754eb8a4e536ba6ba469d7b664dc9223443"
+    "version": "0.1.1",
+    "publishedAt": 1768937840112,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "0.1.0",
+      "publishedAt": 1768937264147,
+      "commit": "https://github.com/clawdbot/skills/commit/2903b754eb8a4e536ba6ba469d7b664dc9223443"
+    }
+  ]
 }
