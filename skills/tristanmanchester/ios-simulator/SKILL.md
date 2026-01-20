@@ -1,216 +1,139 @@
 ---
-name: ios-simulator-skill
-version: 1.3.0
-description: 21 production-ready scripts for iOS app testing, building, and automation. Provides semantic UI navigation, build automation, accessibility testing, and simulator lifecycle management. Optimized for AI agents with minimal token output.
+name: ios-simulator
+description: Automate iOS Simulator workflows (simctl + idb): create/boot/erase devices, install/launch apps, push notifications, privacy grants, screenshots, and accessibility-based UI navigation. Use when working with iOS apps, Xcode, Simulator, simctl, idb, UI automation, or iOS testing.
+metadata: {"clawdbot":{"emoji":"📱","os":["darwin"],"requires":{"bins":["xcrun"]},"install":[{"brew":{"formula":"idb-companion","bins":["idb_companion"],"tap":"facebook/fb"}}]}}
 ---
 
-# iOS Simulator Skill
+# iOS Simulator Automation
 
-Build, test, and automate iOS applications using accessibility-driven navigation and structured data instead of pixel coordinates.
+This skill provides a **Node-only** CLI wrapper around:
+- `xcrun simctl` for simulator/device/app management
+- `idb` for **accessibility-tree** inspection + synthesised UI input (tap/text/button)
 
-## Quick Start
+It is designed for **AI agents**: minimal, structured output by default, with opt-in detail.
+
+## Important constraints
+
+- **Must run on macOS** with Xcode Command Line Tools (or Xcode) available.
+- If the ClawdBot gateway is not macOS, run these commands on a connected **macOS node** (see “Remote macOS node” below).  
+- `idb` is optional, but required for UI tree / semantic tapping. (Install steps below.)
+
+## Quick start
 
 ```bash
-# 1. Check environment
-bash scripts/sim_health_check.sh
+# 1) Sanity check
+node {baseDir}/scripts/ios-sim.mjs health
 
-# 2. Launch app
-python scripts/app_launcher.py --launch com.example.app
+# 2) List simulators (compact)
+node {baseDir}/scripts/ios-sim.mjs list
 
-# 3. Map screen to see elements
-python scripts/screen_mapper.py
+# 3) Select a default simulator (writes .ios-sim-state.json in the current dir)
+node {baseDir}/scripts/ios-sim.mjs select --name "iPhone" --runtime "iOS" --boot
 
-# 4. Tap button
-python scripts/navigator.py --find-text "Login" --tap
+# 4) Install + launch an .app
+node {baseDir}/scripts/ios-sim.mjs app install --app path/to/MyApp.app
+node {baseDir}/scripts/ios-sim.mjs app launch --bundle-id com.example.MyApp
 
-# 5. Enter text
-python scripts/navigator.py --find-type TextField --enter-text "user@example.com"
+# 5) Inspect current UI (requires idb)
+node {baseDir}/scripts/ios-sim.mjs ui summary
+node {baseDir}/scripts/ios-sim.mjs ui tap --query "Log in"
+node {baseDir}/scripts/ios-sim.mjs ui type --text "hello world"
+
+# 6) Screenshot
+node {baseDir}/scripts/ios-sim.mjs screenshot --out artifacts/screen.png
 ```
 
-All scripts support `--help` for detailed options and `--json` for machine-readable output.
+## Remote macOS node
 
-## 21 Production Scripts
+If you are not on macOS, run the same commands on the macOS node using ClawdBot’s node execution (e.g. `exec` with `host: node` / node tools). Ensure the skill folder exists on that node, or copy it there.
 
-### Build & Development (2 scripts)
+## Output conventions (token-efficient)
 
-1. **build_and_test.py** - Build Xcode projects, run tests, parse results with progressive disclosure
-   - Build with live result streaming
-   - Parse errors and warnings from xcresult bundles
-   - Retrieve detailed build logs on demand
-   - Options: `--project`, `--scheme`, `--clean`, `--test`, `--verbose`, `--json`
+- Default output: **single-line JSON** (small summary object).
+- Add `--pretty` to pretty-print JSON.
+- Add `--text` for a short human-readable summary (when provided by the command).
+- Commands that can be huge (`ui tree`, `list --full`) are **opt-in**.
 
-2. **log_monitor.py** - Real-time log monitoring with intelligent filtering
-   - Stream logs or capture by duration
-   - Filter by severity (error/warning/info/debug)
-   - Deduplicate repeated messages
-   - Options: `--app`, `--severity`, `--follow`, `--duration`, `--output`, `--json`
+## State / default UDID
 
-### Navigation & Interaction (5 scripts)
+`select` writes a state file (default: `./.ios-sim-state.json`) that stores the chosen UDID.
+All commands accept `--udid <UUID>` and otherwise fall back to the state file.
 
-3. **screen_mapper.py** - Analyze current screen and list interactive elements
-   - Element type breakdown
-   - Interactive button list
-   - Text field status
-   - Options: `--verbose`, `--hints`, `--json`
+Override location with:
+- `IOS_SIM_STATE_FILE=/path/to/state.json`
 
-4. **navigator.py** - Find and interact with elements semantically
-   - Find by text (fuzzy matching)
-   - Find by element type
-   - Find by accessibility ID
-   - Enter text or tap elements
-   - Options: `--find-text`, `--find-type`, `--find-id`, `--tap`, `--enter-text`, `--json`
+## Dependency notes
 
-5. **gesture.py** - Perform swipes, scrolls, pinches, and complex gestures
-   - Directional swipes (up/down/left/right)
-   - Multi-swipe scrolling
-   - Pinch zoom
-   - Long press
-   - Pull to refresh
-   - Options: `--swipe`, `--scroll`, `--pinch`, `--long-press`, `--refresh`, `--json`
+### Xcode / simctl availability
+If `xcrun` cannot find `simctl`, ensure Xcode CLI tools are selected (via Xcode settings or `xcode-select`) and run the first-launch setup:
+- `xcodebuild -runFirstLaunch`
 
-6. **keyboard.py** - Text input and hardware button control
-   - Type text (fast or slow)
-   - Special keys (return, delete, tab, space, arrows)
-   - Hardware buttons (home, lock, volume, screenshot)
-   - Key combinations
-   - Options: `--type`, `--key`, `--button`, `--slow`, `--clear`, `--dismiss`, `--json`
+### idb (for accessibility automation)
+Install `idb_companion` and the `idb` CLI:
+```bash
+brew tap facebook/fb
+brew install idb-companion
+python3 -m pip install --upgrade fb-idb
+```
 
-7. **app_launcher.py** - App lifecycle management
-   - Launch apps by bundle ID
-   - Terminate apps
-   - Install/uninstall from .app bundles
-   - Deep link navigation
-   - List installed apps
-   - Check app state
-   - Options: `--launch`, `--terminate`, `--install`, `--uninstall`, `--open-url`, `--list`, `--state`, `--json`
+## Safety tiers
 
-### Testing & Analysis (5 scripts)
+| Tier | Commands | Notes |
+|------|----------|------|
+| SAFE | `list`, `health`, `boot`, `shutdown`, `screenshot`, `ui *` | No data loss |
+| CAUTION | `privacy *`, `push`, `clipboard *`, `openurl` | Alters simulator/app state |
+| DANGEROUS | `erase`, `delete` | Requires `--yes` |
 
-8. **accessibility_audit.py** - Check WCAG compliance on current screen
-   - Critical issues (missing labels, empty buttons, no alt text)
-   - Warnings (missing hints, small touch targets)
-   - Info (missing IDs, deep nesting)
-   - Options: `--verbose`, `--output`, `--json`
+## Command index
 
-9. **visual_diff.py** - Compare two screenshots for visual changes
-   - Pixel-by-pixel comparison
-   - Threshold-based pass/fail
-   - Generate diff images
-   - Options: `--threshold`, `--output`, `--details`, `--json`
+All commands live under:
+```bash
+node {baseDir}/scripts/ios-sim.mjs <command> [subcommand] [flags]
+```
 
-10. **test_recorder.py** - Automatically document test execution
-    - Capture screenshots and accessibility trees per step
-    - Generate markdown reports with timing data
-    - Options: `--test-name`, `--output`, `--verbose`, `--json`
+### Core simulator lifecycle
+- `list [--full]`
+- `select --name <substr> [--runtime <substr>] [--boot]`
+- `boot [--udid <uuid>] [--wait]`
+- `shutdown [--udid <uuid>|--all]`
+- `erase --yes [--udid <uuid>|--all]`
+- `delete --yes [--udid <uuid>]`
+- `create --name <name> --device-type <substr> --runtime <substr>`
 
-11. **app_state_capture.py** - Create comprehensive debugging snapshots
-    - Screenshot, UI hierarchy, app logs, device info
-    - Markdown summary for bug reports
-    - Options: `--app-bundle-id`, `--output`, `--log-lines`, `--json`
+### App management
+- `app install --app <path/to/App.app> [--udid ...]`
+- `app uninstall --bundle-id <id> [--udid ...]`
+- `app launch --bundle-id <id> [--udid ...] [-- <args...>]`
+- `app terminate --bundle-id <id> [--udid ...]`
+- `app container --bundle-id <id> [--type data|app] [--udid ...]`
 
-12. **sim_health_check.sh** - Verify environment is properly configured
-    - Check macOS, Xcode, simctl, IDB, Python
-    - List available and booted simulators
-    - Verify Python packages (Pillow)
+### Screenshots & video
+- `screenshot --out <file.png> [--udid ...]`
+- `record-video --out <file.mp4> [--udid ...]` (runs until Ctrl+C)
 
-### Advanced Testing & Permissions (4 scripts)
+### Clipboard / URL
+- `clipboard get [--udid ...]`
+- `clipboard set --text <text> [--udid ...]`
+- `openurl --url <url> [--udid ...]`
 
-13. **clipboard.py** - Manage simulator clipboard for paste testing
-    - Copy text to clipboard
-    - Test paste flows without manual entry
-    - Options: `--copy`, `--test-name`, `--expected`, `--json`
+### Simulator permissions & push notifications
+- `privacy grant --bundle-id <id> --service <svc[,svc...]> [--udid ...]`
+- `privacy revoke --bundle-id <id> --service <svc[,svc...]> [--udid ...]`
+- `privacy reset --bundle-id <id> --service <svc[,svc...]> [--udid ...]`
+- `push --bundle-id <id> --payload <json-string> [--udid ...]`
 
-14. **status_bar.py** - Override simulator status bar appearance
-    - Presets: clean (9:41, 100% battery), testing (11:11, 50%), low-battery (20%), airplane (offline)
-    - Custom time, network, battery, WiFi settings
-    - Options: `--preset`, `--time`, `--data-network`, `--battery-level`, `--clear`, `--json`
+### Logs
+- `logs show [--last 5m] [--predicate <expr>] [--udid ...]`
 
-15. **push_notification.py** - Send simulated push notifications
-    - Simple mode (title + body + badge)
-    - Custom JSON payloads
-    - Test notification handling and deep links
-    - Options: `--bundle-id`, `--title`, `--body`, `--badge`, `--payload`, `--json`
+### Accessibility-driven UI automation (requires idb)
+- `ui summary [--limit 12]`
+- `ui tree` (full UI JSON array)
+- `ui find --query <text> [--limit 20]`
+- `ui tap --query <text>` (find + tap best match)
+- `ui tap --x <num> --y <num>` (raw coordinate tap)
+- `ui type --text <text>`
+- `ui button --name HOME|LOCK|SIRI|SIDE_BUTTON|APPLE_PAY`
 
-16. **privacy_manager.py** - Grant, revoke, and reset app permissions
-    - 13 supported services (camera, microphone, location, contacts, photos, calendar, health, etc.)
-    - Batch operations (comma-separated services)
-    - Audit trail with test scenario tracking
-    - Options: `--bundle-id`, `--grant`, `--revoke`, `--reset`, `--list`, `--json`
+## Troubleshooting
 
-### Device Lifecycle Management (5 scripts)
-
-17. **simctl_boot.py** - Boot simulators with optional readiness verification
-    - Boot by UDID or device name
-    - Wait for device ready with timeout
-    - Batch boot operations (--all, --type)
-    - Performance timing
-    - Options: `--udid`, `--name`, `--wait-ready`, `--timeout`, `--all`, `--type`, `--json`
-
-18. **simctl_shutdown.py** - Gracefully shutdown simulators
-    - Shutdown by UDID or device name
-    - Optional verification of shutdown completion
-    - Batch shutdown operations
-    - Options: `--udid`, `--name`, `--verify`, `--timeout`, `--all`, `--type`, `--json`
-
-19. **simctl_create.py** - Create simulators dynamically
-    - Create by device type and iOS version
-    - List available device types and runtimes
-    - Custom device naming
-    - Returns UDID for CI/CD integration
-    - Options: `--device`, `--runtime`, `--name`, `--list-devices`, `--list-runtimes`, `--json`
-
-20. **simctl_delete.py** - Permanently delete simulators
-    - Delete by UDID or device name
-    - Safety confirmation by default (skip with --yes)
-    - Batch delete operations
-    - Smart deletion (--old N to keep N per device type)
-    - Options: `--udid`, `--name`, `--yes`, `--all`, `--type`, `--old`, `--json`
-
-21. **simctl_erase.py** - Factory reset simulators without deletion
-    - Preserve device UUID (faster than delete+create)
-    - Erase all, by type, or booted simulators
-    - Optional verification
-    - Options: `--udid`, `--name`, `--verify`, `--timeout`, `--all`, `--type`, `--booted`, `--json`
-
-## Common Patterns
-
-**Auto-UDID Detection**: Most scripts auto-detect the booted simulator if --udid is not provided.
-
-**Device Name Resolution**: Use device names (e.g., "iPhone 16 Pro") instead of UDIDs - scripts resolve automatically.
-
-**Batch Operations**: Many scripts support `--all` for all simulators or `--type iPhone` for device type filtering.
-
-**Output Formats**: Default is concise human-readable output. Use `--json` for machine-readable output in CI/CD.
-
-**Help**: All scripts support `--help` for detailed options and examples.
-
-## Typical Workflow
-
-1. Verify environment: `bash scripts/sim_health_check.sh`
-2. Launch app: `python scripts/app_launcher.py --launch com.example.app`
-3. Analyze screen: `python scripts/screen_mapper.py`
-4. Interact: `python scripts/navigator.py --find-text "Button" --tap`
-5. Verify: `python scripts/accessibility_audit.py`
-6. Debug if needed: `python scripts/app_state_capture.py --app-bundle-id com.example.app`
-
-## Requirements
-
-- macOS 12+
-- Xcode Command Line Tools
-- Python 3
-- IDB (optional, for interactive features)
-
-
-## Key Design Principles
-
-**Semantic Navigation**: Find elements by meaning (text, type, ID) not pixel coordinates. Survives UI changes.
-
-**Token Efficiency**: Concise default output (3-5 lines) with optional verbose and JSON modes for detailed results.
-
-**Accessibility-First**: Built on standard accessibility APIs for reliability and compatibility.
-
-**Zero Configuration**: Works immediately on any macOS with Xcode. No setup required.
-
-**Structured Data**: Scripts output JSON or formatted text, not raw logs. Easy to parse and integrate.
-
-**Auto-Learning**: Build system remembers your device preference. Configuration stored per-project.
+See: [references/TROUBLESHOOTING.md](references/TROUBLESHOOTING.md)
