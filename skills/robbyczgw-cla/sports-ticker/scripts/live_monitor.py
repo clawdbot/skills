@@ -79,7 +79,13 @@ def check_team(team: dict, state: dict, alerts_config: dict) -> tuple[list, dict
     
     # Kick-off / Game start
     if alerts_config.get("kickoff", True):
-        if status == "In Progress" and prev_status != "In Progress":
+        # Check if game is live (covers "In Progress", "First Half", "Second Half", etc.)
+        is_live = status in ("In Progress", "First Half", "Second Half", "1st Quarter", "2nd Quarter", 
+                            "3rd Quarter", "4th Quarter", "1st Period", "2nd Period", "3rd Period")
+        was_live = prev_status in ("In Progress", "First Half", "Second Half", "1st Quarter", "2nd Quarter",
+                                   "3rd Quarter", "4th Quarter", "1st Period", "2nd Period", "3rd Period")
+        
+        if is_live and not was_live and prev_status != "Halftime":
             from espn import LEAGUES
             sport_leagues = LEAGUES.get(sport, {})
             opponent = away_team if is_home else home_team
