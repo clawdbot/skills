@@ -1,0 +1,11 @@
+{
+  "owner": "kesslerio",
+  "slug": "task-tracker",
+  "displayName": "Task Tracker",
+  "latest": {
+    "version": "1.0.0",
+    "publishedAt": 1768972833518,
+    "commit": null
+  },
+  "history": []
+}
