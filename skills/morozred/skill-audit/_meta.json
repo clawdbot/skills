@@ -1,0 +1,11 @@
+{
+  "owner": "morozred",
+  "slug": "skill-audit",
+  "displayName": "SkillLens Audit",
+  "latest": {
+    "version": "1.0.0",
+    "publishedAt": 1769098619701,
+    "commit": null
+  },
+  "history": []
+}
