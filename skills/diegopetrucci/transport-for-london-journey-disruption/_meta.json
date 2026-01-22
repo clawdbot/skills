@@ -1,0 +1,11 @@
+{
+  "owner": "diegopetrucci",
+  "slug": "transport-for-london-journey-disruption",
+  "displayName": "London public transport journey planner and disruptions",
+  "latest": {
+    "version": "1.0.1",
+    "publishedAt": 1769112988752,
+    "commit": null
+  },
+  "history": []
+}
