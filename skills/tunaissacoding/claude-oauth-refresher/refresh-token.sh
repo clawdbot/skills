@@ -16,7 +16,7 @@ CONFIG_FILE="$SCRIPT_DIR/claude-oauth-refresh-config.json"
 
 # Defaults for Clawdbot setup
 DEFAULT_KEYCHAIN_SERVICE="Claude Code-credentials"
-DEFAULT_KEYCHAIN_ACCOUNT="claude"
+DEFAULT_KEYCHAIN_ACCOUNT="claude"  # Most common, but will auto-discover if needed
 DEFAULT_KEYCHAIN_FIELD="claudeAiOauth"
 DEFAULT_AUTH_FILE="$HOME/.clawdbot/agents/main/agent/auth-profiles.json"
 DEFAULT_PROFILE_NAME="anthropic:default"
@@ -105,62 +105,85 @@ error_exit() {
 echo "=== Claude OAuth Token Refresh ==="
 log "Refresh started"
 
-# Step 1: Read tokens from Keychain with fallback discovery
+# Step 1: Read tokens from Keychain - iterate through ALL matching entries
 log "Reading tokens from Keychain..."
 
 # Helper function to validate keychain data
 validate_keychain_data() {
     local data="$1"
-    local account_name="$2"
     
     # Try to parse and check for required fields
     local has_refresh=$(echo "$data" | python3 -c "import sys, json; data=json.load(sys.stdin); print('yes' if '$KEYCHAIN_FIELD' in data and 'refreshToken' in data['$KEYCHAIN_FIELD'] and data['$KEYCHAIN_FIELD']['refreshToken'] else 'no')" 2>/dev/null)
     local has_expires=$(echo "$data" | python3 -c "import sys, json; data=json.load(sys.stdin); print('yes' if '$KEYCHAIN_FIELD' in data and 'expiresAt' in data['$KEYCHAIN_FIELD'] and data['$KEYCHAIN_FIELD']['expiresAt'] else 'no')" 2>/dev/null)
     
     if [[ "$has_refresh" == "yes" ]] && [[ "$has_expires" == "yes" ]]; then
-        log "✓ Found complete token data in account: $account_name"
         return 0
     else
-        log "⚠ Account '$account_name' has incomplete data (refreshToken: $has_refresh, expiresAt: $has_expires)"
         return 1
     fi
 }
 
-# Try primary account first
+# Get ALL account names for this service (account name doesn't matter, we just need to iterate)
+log "Scanning for all '$KEYCHAIN_SERVICE' entries..."
+ALL_ACCOUNTS=$(security dump-keychain 2>/dev/null | \
+    awk '/^class: "genp"/,/^keychain:/ {
+        if (/"acct"<blob>=/) {
+            gsub(/.*"acct"<blob>="/, "");
+            gsub(/".*/, "");
+            account=$0
+        }
+        if (/"svce"<blob>="'"$KEYCHAIN_SERVICE"'"/) {
+            print account
+        }
+    }' | sort -u)
+
+if [[ -z "$ALL_ACCOUNTS" ]]; then
+    error_exit "No '$KEYCHAIN_SERVICE' entries found in Keychain.
+
+Run Claude CLI first:
+  claude auth
+
+This will create the required Keychain entry."
+fi
+
+log "Found $(echo "$ALL_ACCOUNTS" | wc -l | tr -d ' ') '$KEYCHAIN_SERVICE' entry/entries"
+
+# Iterate through each entry until we find one with complete OAuth data
 KEYCHAIN_DATA=""
-KEYCHAIN_DATA=$(security find-generic-password -s "$KEYCHAIN_SERVICE" -a "$KEYCHAIN_ACCOUNT" -w 2>&1 || echo "")
+KEYCHAIN_ACCOUNT=""
+FOUND=false
 
-if [[ -n "$KEYCHAIN_DATA" ]] && validate_keychain_data "$KEYCHAIN_DATA" "$KEYCHAIN_ACCOUNT"; then
-    log "Using configured account: $KEYCHAIN_ACCOUNT"
-else
-    # Fallback: Auto-discover accounts with complete data
-    log "Primary account failed, trying common account names..."
+while IFS= read -r account; do
+    [[ -z "$account" ]] && continue
     
-    # Try common account names
-    COMMON_ACCOUNTS=("claude" "Claude Code" "default" "oauth" "anthropic")
+    log "Checking entry with account: $account"
     
-    FOUND=false
-    for account in "${COMMON_ACCOUNTS[@]}"; do
-        log "Trying account: $account"
-        
-        KEYCHAIN_DATA=$(security find-generic-password -s "$KEYCHAIN_SERVICE" -a "$account" -w 2>&1 || echo "")
-        
-        if [[ -n "$KEYCHAIN_DATA" ]] && validate_keychain_data "$KEYCHAIN_DATA" "$account"; then
-            KEYCHAIN_ACCOUNT="$account"  # Update to use this account
-            FOUND=true
-            break
-        fi
-    done
+    TEMP_DATA=$(security find-generic-password -s "$KEYCHAIN_SERVICE" -a "$account" -w 2>&1 || echo "")
     
-    if [[ "$FOUND" == "false" ]]; then
-        error_exit "No account found with complete token data. Tried: ${COMMON_ACCOUNTS[*]}
-
-Hint: Check your keychain entry:
-  security find-generic-password -s '$KEYCHAIN_SERVICE' -l
-
-Verify the password (JSON) contains:
-  { \"$KEYCHAIN_FIELD\": { \"refreshToken\": \"...\", \"expiresAt\": ... } }"
+    if [[ -n "$TEMP_DATA" ]] && validate_keychain_data "$TEMP_DATA"; then
+        KEYCHAIN_DATA="$TEMP_DATA"
+        KEYCHAIN_ACCOUNT="$account"
+        FOUND=true
+        log "✓ Found complete OAuth tokens in this entry"
+        break
+    else
+        log "  ⚠ Entry incomplete or invalid, continuing..."
     fi
+done <<< "$ALL_ACCOUNTS"
+
+if [[ "$FOUND" == "false" ]]; then
+    error_exit "No '$KEYCHAIN_SERVICE' entry has complete OAuth data.
+
+Found entries with these account names:
+$(echo "$ALL_ACCOUNTS" | sed 's/^/  - /')
+
+But none contain valid OAuth tokens.
+
+Run Claude CLI to authenticate:
+  claude auth
+
+Verify the entry contains:
+  { \"$KEYCHAIN_FIELD\": { \"refreshToken\": \"...\", \"expiresAt\": ... } }"
 fi
 
 # Parse keychain JSON

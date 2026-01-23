@@ -3,11 +3,16 @@
   "slug": "claude-oauth-refresher",
   "displayName": "Claude Oauth Refresher",
   "latest": {
-    "version": "1.4.0",
-    "publishedAt": 1769178226630,
-    "commit": "https://github.com/clawdbot/skills/commit/6a05f9440cc3d324a57fd659a11c42f956428bdd"
+    "version": "1.5.0",
+    "publishedAt": 1769188864066,
+    "commit": null
   },
   "history": [
+    {
+      "version": "1.4.0",
+      "publishedAt": 1769178226630,
+      "commit": "https://github.com/clawdbot/skills/commit/6a05f9440cc3d324a57fd659a11c42f956428bdd"
+    },
     {
       "version": "1.2.3",
       "publishedAt": 1769174218794,

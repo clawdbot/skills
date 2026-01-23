@@ -66,12 +66,63 @@ fi
 
 # Check 4: Keychain credentials
 echo -n "Checking Keychain credentials... "
-if security find-generic-password -s "claude-cli-auth" -a "default" &> /dev/null; then
+
+# Scan for ALL "Claude Code-credentials" entries (account name irrelevant)
+SERVICE="Claude Code-credentials"
+ALL_ACCOUNTS=$(security dump-keychain 2>/dev/null | \
+    awk '/^class: "genp"/,/^keychain:/ {
+        if (/"acct"<blob>=/) {
+            gsub(/.*"acct"<blob>="/, "");
+            gsub(/".*/, "");
+            account=$0
+        }
+        if (/"svce"<blob>="'"$SERVICE"'"/) {
+            print account
+        }
+    }' | sort -u)
+
+KEYCHAIN_FOUND=false
+VALID_ACCOUNT=""
+
+# Iterate through each entry to find one with complete OAuth data
+while IFS= read -r account; do
+    [[ -z "$account" ]] && continue
+    
+    KEYCHAIN_DATA=$(security find-generic-password -s "$SERVICE" -a "$account" -w 2>/dev/null || echo "")
+    
+    if [[ -n "$KEYCHAIN_DATA" ]]; then
+        # Check if it has valid OAuth tokens
+        if echo "$KEYCHAIN_DATA" | python3 -c "import sys, json; data=json.load(sys.stdin); exit(0 if 'claudeAiOauth' in data and 'refreshToken' in data['claudeAiOauth'] else 1)" 2>/dev/null; then
+            KEYCHAIN_FOUND=true
+            VALID_ACCOUNT="$account"
+            break
+        fi
+    fi
+done <<< "$ALL_ACCOUNTS"
+
+if [[ "$KEYCHAIN_FOUND" == "true" ]]; then
     echo -e "${GREEN}✓${NC} Found"
+    echo "  → Service: $SERVICE"
+    echo "  → Account: $VALID_ACCOUNT (label doesn't matter)"
+    echo "  → Contains valid OAuth tokens"
 else
     echo -e "${RED}✗${NC} Not found"
-    echo "  → No refresh token in Keychain"
-    echo "  → Run: claude auth"
+    echo "  → Service: $SERVICE"
+    
+    if [[ -n "$ALL_ACCOUNTS" ]]; then
+        NUM_ENTRIES=$(echo "$ALL_ACCOUNTS" | wc -l | tr -d ' ')
+        echo "  → Found $NUM_ENTRIES entry/entries, but none have complete OAuth data:"
+        echo "$ALL_ACCOUNTS" | sed 's/^/      /'
+        echo ""
+        echo "  Run: claude auth (to refresh authentication)"
+    else
+        echo "  → No '$SERVICE' entries found in Keychain"
+        echo "  → Run: claude auth (to create authentication)"
+    fi
+    
+    echo ""
+    echo "  Debug: List all Claude keychain entries:"
+    echo "    security find-generic-password -s '$SERVICE' -g"
     ((ERRORS++))
 fi
 

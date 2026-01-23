@@ -54,10 +54,18 @@ claude
 
 **Then run the login command:**
 ```
-login
+auth
 ```
 
 Follow the login prompts. **This creates the Keychain item** that stores your tokens.
+
+**How it works:**
+- Claude CLI creates a Keychain entry with service name `"Claude Code-credentials"`
+- The account name varies (could be `"claude"`, `"Claude Code"`, your username, etc.) - **this doesn't matter**
+- The skill automatically **iterates through every** `"Claude Code-credentials"` entry in your Keychain
+- Uses the first one that has complete OAuth tokens (`refreshToken` + `expiresAt`)
+
+No manual configuration needed - it handles duplicates and incomplete entries automatically.
 
 ---
 
