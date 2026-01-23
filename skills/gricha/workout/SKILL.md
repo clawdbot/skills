@@ -1,7 +1,7 @@
 ---
 name: workout
 description: Track workouts, log sets, manage exercises and templates with workout-cli. Use when helping users record gym sessions, view history, or analyze strength progression.
-metadata: {"clawdbot":{"emoji":"🏋️"}}
+metadata: {"clawdbot":{"emoji":"🏋️","requires":{"bins":["workout"]}}}
 ---
 
 # Workout CLI
@@ -11,14 +11,10 @@ CLI for tracking workouts, managing exercises, and analyzing training progress.
 ## Installation
 
 ```bash
-git clone https://github.com/gricha/workout-cli.git
-cd workout-cli
-bun install
-bun run build
-# Binary at ./dist/workout
+curl -fsSL https://raw.githubusercontent.com/gricha/workout-cli/main/install.sh | bash
 ```
 
-Requires: [Bun](https://bun.sh) >= 1.3.5
+Then add to PATH: `export PATH="$HOME/.workout-cli/bin:$PATH"`
 
 ## Quick Reference
 
@@ -218,8 +214,6 @@ workout log lat-pulldown 100 10,10,9,8
 workout note lat-pulldown "Dropped from 120 due to elbow"
 workout log single-arm-cable-row 40 12,12,10
 workout log single-arm-cable-row 45 10,10
-workout log reverse-pec-deck 75 15,15
-workout log reverse-pec-deck 80 12,12
 
 # 3. Add session notes
 workout note "Pull day - elbow still recovering"
