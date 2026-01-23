@@ -8,9 +8,37 @@ Automatically refreshes your Claude tokens before they expire. No more authentic
 
 ---
 
+## 🔑 Prerequisites
+
+Before installing this skill, you need:
+
+### Step 1: Install Claude Code CLI
+
+```bash
+curl -fsSL https://claude.ai/install.sh | bash
+```
+
+### Step 2: Run Claude and Log In
+
+```bash
+claude
+```
+
+Follow the login prompts. **This creates the Keychain item** that stores your tokens.
+
+### Step 3: Install Clawdbot (if you haven't)
+
+```bash
+npm install -g clawdbot
+clawdbot gateway start
+```
+
+---
+
 ## 📋 Requirements
 
 - macOS with Keychain
+- Claude Code CLI (installed and authenticated above)
 - `jq` (`brew install jq`)
 - Clawdbot (for scheduling)
 
@@ -32,13 +60,15 @@ Zero manual intervention needed.
 
 ## 🚀 Installation
 
+**After completing prerequisites above:**
+
 ```bash
 clawdhub install claude-oauth-refresher
 ```
 
 ### First-Time Setup
 
-**Most users: Just run it**
+**Run the refresher to get your model running on Claude subscription:**
 
 ```bash
 cd ~/clawd/skills/claude-oauth-refresher
@@ -50,7 +80,7 @@ cd ~/clawd/skills/claude-oauth-refresher
 ✅ Token still valid (475 minutes remaining)
 ```
 
-**That's it!** The script auto-discovers your keychain setup.
+**That's it!** The script auto-discovers your keychain setup and automates token refresh.
 
 ### What Happens
 
