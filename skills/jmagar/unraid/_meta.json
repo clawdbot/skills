@@ -1,0 +1,11 @@
+{
+  "owner": "jmagar",
+  "slug": "unraid",
+  "displayName": "Unraid API & Dashboard",
+  "latest": {
+    "version": "1.0.0",
+    "publishedAt": 1769150829241,
+    "commit": null
+  },
+  "history": []
+}
