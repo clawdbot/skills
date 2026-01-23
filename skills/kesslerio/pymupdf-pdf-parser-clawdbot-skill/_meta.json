@@ -1,0 +1,11 @@
+{
+  "owner": "kesslerio",
+  "slug": "pymupdf-pdf-parser-clawdbot-skill",
+  "displayName": "PyMuPDF PDF Parser Clawdbot Skill",
+  "latest": {
+    "version": "1.0.0",
+    "publishedAt": 1769196431096,
+    "commit": null
+  },
+  "history": []
+}
