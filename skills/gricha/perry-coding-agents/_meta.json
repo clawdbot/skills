@@ -3,11 +3,16 @@
   "slug": "perry-coding-agents",
   "displayName": "Perry Coding Agents",
   "latest": {
-    "version": "1.1.0",
-    "publishedAt": 1769126269476,
-    "commit": "https://github.com/clawdbot/skills/commit/c78369bc38c2403390f8dd02daf3fce81d0755bc"
+    "version": "1.1.1",
+    "publishedAt": 1769192688379,
+    "commit": null
   },
   "history": [
+    {
+      "version": "1.1.0",
+      "publishedAt": 1769126269476,
+      "commit": "https://github.com/clawdbot/skills/commit/c78369bc38c2403390f8dd02daf3fce81d0755bc"
+    },
     {
       "version": "1.0.0",
       "publishedAt": 1769107551160,

@@ -62,10 +62,10 @@ Before dispatching, look up the gateway IP for wake callbacks:
 tailscale status --self --json | jq -r '.Self.TailscaleIPs[0]'
 
 # Gateway port: 18789
-# Auth token: from gateway.auth.token in config
+# Auth token: from hooks.token in config (NOT gateway.auth.token)
 ```
 
-The wake callback URL: `http://<tailnet-ip>:18789/api/wake`
+The wake callback URL: `http://<tailnet-ip>:18789/hooks/wake`
 
 ### 3. Dispatch Task with Wake Callback
 
@@ -79,7 +79,7 @@ TOKEN="<your-gateway-token>"
 ssh -t workspace@<name> "cd ~/<projname> && opencode run 'Build feature X.
 
 When completely finished, notify me by running:
-curl -X POST http://${WAKE_IP}:18789/api/wake \\
+curl -X POST http://${WAKE_IP}:18789/hooks/wake \\
   -H \"Content-Type: application/json\" \\
   -H \"Authorization: Bearer ${TOKEN}\" \\
   -d \"{\\\"text\\\": \\\"Done: Built feature X on <name>\\\", \\\"mode\\\": \\\"now\\\"}\"
@@ -115,7 +115,7 @@ WAKE_IP=$(tailscale status --self --json | jq -r '.Self.TailscaleIPs[0]')
 # Dispatch with wake callback
 ssh workspace@<name> "cd ~/<projname> && nohup opencode run 'Your task.
 
-When done: curl -X POST http://${WAKE_IP}:18789/api/wake -H \"Authorization: Bearer <token>\" -d \"{\\\"text\\\":\\\"Done: task summary\\\"}\"
+When done: curl -X POST http://${WAKE_IP}:18789/hooks/wake -H \"Authorization: Bearer <hooks-token>\" -d \"{\\\"text\\\":\\\"Done: task summary\\\"}\"
 ' > /tmp/opencode.log 2>&1 &"
 
 # Schedule backup check
@@ -198,11 +198,11 @@ perry start fix-issue-99 --clone git@github.com:user/repo.git
 # Dispatch fixes with wake callbacks
 ssh workspace@fix-issue-78 "cd ~/<projname> && git checkout -b fix/issue-78 && nohup opencode run 'Fix issue #78: description. Commit when done.
 
-When finished: curl -X POST http://<WAKE_IP>:18789/api/wake ...' > /tmp/fix.log 2>&1 &"
+When finished: curl -X POST http://<WAKE_IP>:18789/hooks/wake ...' > /tmp/fix.log 2>&1 &"
 
 ssh workspace@fix-issue-99 "cd ~/<projname> && git checkout -b fix/issue-99 && nohup opencode run 'Fix issue #99: description. Commit when done.
 
-When finished: curl -X POST http://<WAKE_IP>:18789/api/wake ...' > /tmp/fix.log 2>&1 &"
+When finished: curl -X POST http://<WAKE_IP>:18789/hooks/wake ...' > /tmp/fix.log 2>&1 &"
 
 # Schedule backup check
 clawdbot cron add --at +20m --message "Fallback check: issue fixes 78, 99"
@@ -279,4 +279,4 @@ SSH non-login shells don't source `.bashrc`. Use full paths:
 **Wake callback not firing:**
 - Check the agent actually finished (logs)
 - Verify the IP/token are correct
-- Test manually: `curl -X POST http://<ip>:18789/api/wake ...`
+- Test manually: `curl -X POST http://<ip>:18789/hooks/wake ...`
