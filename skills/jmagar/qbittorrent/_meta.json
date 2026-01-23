@@ -1,0 +1,11 @@
+{
+  "owner": "jmagar",
+  "slug": "qbittorrent",
+  "displayName": "Qbittorrent",
+  "latest": {
+    "version": "1.0.0",
+    "publishedAt": 1769203164320,
+    "commit": null
+  },
+  "history": []
+}
