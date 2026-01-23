@@ -1,0 +1,4 @@
+# Oura Analytics Skill Dependencies
+# Note: Uses Python's built-in urllib.request (no external HTTP library)
+pytz
+pyyaml

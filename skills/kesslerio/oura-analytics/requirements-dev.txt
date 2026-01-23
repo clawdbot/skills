@@ -1,0 +1,5 @@
+# Development dependencies for Oura Analytics skill
+pytest>=7.0
+pytest-cov
+pytz  # for timezone utilities in timezone_utils.py
+ruff
