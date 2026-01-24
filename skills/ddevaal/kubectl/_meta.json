@@ -1,0 +1,11 @@
+{
+  "owner": "ddevaal",
+  "slug": "kubectl",
+  "displayName": "kubectl",
+  "latest": {
+    "version": "1.0.0",
+    "publishedAt": 1769247843962,
+    "commit": null
+  },
+  "history": []
+}
