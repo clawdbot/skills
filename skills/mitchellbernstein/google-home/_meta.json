@@ -1,0 +1,11 @@
+{
+  "owner": "mitchellbernstein",
+  "slug": "google-home",
+  "displayName": "Google Home/Nest",
+  "latest": {
+    "version": "1.0.0",
+    "publishedAt": 1769278384348,
+    "commit": null
+  },
+  "history": []
+}
