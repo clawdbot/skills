@@ -1,0 +1,11 @@
+{
+  "owner": "krausefx",
+  "slug": "homey-cli",
+  "displayName": "Homey - Home Automation",
+  "latest": {
+    "version": "1.0.0",
+    "publishedAt": 1769267190616,
+    "commit": null
+  },
+  "history": []
+}
