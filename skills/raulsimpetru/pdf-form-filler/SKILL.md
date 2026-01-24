@@ -1,6 +1,7 @@
 ---
 name: pdf-form-filler
 description: Fill PDF forms programmatically with text values and checkboxes. Use when you need to populate fillable PDF forms (government forms, applications, surveys, etc.) with data. Supports setting text fields and checkboxes with proper appearance states for visual rendering.
+version: 0.2.0
 ---
 
 # PDF Form Filler

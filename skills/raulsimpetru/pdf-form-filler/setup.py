@@ -5,7 +5,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setup(
     name="pdf-form-filler",
-    version="0.1.0",
+    version="0.2.0",
     author="Raul C. Sîmpetru",
     author_email="raul.simpetru@fau.de",
     description="Fill PDF forms programmatically with text and checkboxes",
@@ -25,4 +25,9 @@ setup(
     install_requires=[
         "pdfrw>=0.4",
     ],
+    entry_points={
+        "console_scripts": [
+            "fill-pdf-form=pdf_form_filler.fill_pdf_form:main",
+        ],
+    },
 )
