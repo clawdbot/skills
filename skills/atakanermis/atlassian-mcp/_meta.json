@@ -1,0 +1,11 @@
+{
+  "owner": "atakanermis",
+  "slug": "atlassian-mcp",
+  "displayName": "Atlassian MCP (Jira, Confluence)",
+  "latest": {
+    "version": "1.0.0",
+    "publishedAt": 1769364567351,
+    "commit": null
+  },
+  "history": []
+}
