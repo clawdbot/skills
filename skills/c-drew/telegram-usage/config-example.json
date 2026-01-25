@@ -1,0 +1,33 @@
+{
+  "comment": "Add this to ~/.clawdbot/clawdbot.json to configure the telegram-usage skill",
+  "channels": {
+    "telegram": {
+      "enabled": true,
+      "botToken": "8251959160:AAF4l6HWzr-yDXiavRCDSKofvnXK_X7pMNM",
+      "customCommands": [
+        {
+          "command": "usage",
+          "description": "Show session usage stats"
+        },
+        {
+          "command": "stats",
+          "description": "Display quota and token usage"
+        }
+      ]
+    }
+  },
+  "skills": {
+    "entries": {
+      "telegram-usage": {
+        "enabled": true
+      }
+    }
+  },
+  "session": {
+    "reset": {
+      "mode": "daily",
+      "atHour": 4,
+      "idleMinutes": null
+    }
+  }
+}
