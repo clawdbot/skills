@@ -1,0 +1,11 @@
+{
+  "owner": "mvarrieur",
+  "slug": "imap-email",
+  "displayName": "IMAP Email Reader",
+  "latest": {
+    "version": "1.0.2",
+    "publishedAt": 1769365589026,
+    "commit": null
+  },
+  "history": []
+}
