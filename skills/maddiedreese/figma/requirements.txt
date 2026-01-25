@@ -1,0 +1,3 @@
+requests>=2.31.0
+aiohttp>=3.9.0
+pathlib
