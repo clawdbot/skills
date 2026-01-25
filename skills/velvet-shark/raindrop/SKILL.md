@@ -60,7 +60,7 @@ echo 'RAINDROP_TOKEN="your-token"' > ~/.config/raindrop.env
 | `create-collection NAME` | Create new collection |
 | `move ID COLLECTION` | Move bookmark to collection |
 | `update ID [opts]` | Update tags/title/collection |
-| `bulk-move IDS COLLECTION` | Move multiple bookmarks at once |
+| `bulk-move IDS TARGET [SOURCE]` | Move multiple bookmarks (source defaults to -1/Unsorted) |
 | `suggest URL` | Get AI-suggested tags/title |
 
 ### Options

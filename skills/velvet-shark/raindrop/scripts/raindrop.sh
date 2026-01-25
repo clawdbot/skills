@@ -238,15 +238,16 @@ case "$cmd" in
   
   bulk-move)
     [[ -z "${1:-}" ]] && die "Comma-separated bookmark IDs required"
-    [[ -z "${2:-}" ]] && die "Collection ID required"
+    [[ -z "${2:-}" ]] && die "Target collection ID required"
     ids="$1"
-    collection="$2"
+    target_collection="$2"
+    source_collection="${3:--1}"  # Default to Unsorted (-1) if not specified
     
     # Convert comma-separated IDs to JSON array
     ids_json=$(echo "$ids" | tr ',' '\n' | jq -R 'tonumber' | jq -s .)
     
-    # Use bulk update API
-    api PUT "/raindrops" -d "{\"ids\":$ids_json,\"collectionId\":$collection}" | if [[ "$FORMAT" == "json" ]]; then cat; else jq -r '"Moved \(.modified) bookmarks to collection '"$collection"'"'; fi
+    # Use bulk update API - requires source collection in path, target as collection.$id in body
+    api PUT "/raindrops/${source_collection}" -d "{\"ids\":$ids_json,\"collection\":{\"\$id\":$target_collection}}" | if [[ "$FORMAT" == "json" ]]; then cat; else jq -r '"Moved \(.modified) bookmarks to collection '"$target_collection"'"'; fi
     ;;
   
   tags)
