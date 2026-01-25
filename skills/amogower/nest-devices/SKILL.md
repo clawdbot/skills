@@ -123,8 +123,173 @@ The script checks for credentials in this order:
 | Warm | 22-23°C | 72-73°F |
 | Night | 17-18°C | 63-65°F |
 
+---
+
+## Real-Time Events (Doorbell, Motion, etc.)
+
+For instant alerts when someone rings the doorbell or motion is detected, you need to set up Google Cloud Pub/Sub with a webhook.
+
+### Prerequisites
+
+- Google Cloud CLI (`gcloud`) installed and authenticated
+- Cloudflare account (free tier works) for the tunnel
+- Clawdbot hooks enabled in config
+
+### 1. Enable Clawdbot Hooks
+
+Add to your `clawdbot.json`:
+
+```json
+{
+  "hooks": {
+    "enabled": true,
+    "token": "your-secret-token-here"
+  }
+}
+```
+
+Generate a token: `openssl rand -hex 24`
+
+### 2. Create Pub/Sub Topic
+
+```bash
+gcloud config set project YOUR_GCP_PROJECT_ID
+
+# Create topic
+gcloud pubsub topics create nest-events
+
+# Grant SDM permission to publish
+gcloud pubsub topics add-iam-policy-binding nest-events \
+  --member="serviceAccount:sdm-prod@sdm-prod.iam.gserviceaccount.com" \
+  --role="roles/pubsub.publisher"
+```
+
+### 3. Link Topic to Device Access
+
+Go to [console.nest.google.com/device-access](https://console.nest.google.com/device-access) → Your Project → Edit → Set Pub/Sub topic to:
+
+```
+projects/YOUR_GCP_PROJECT_ID/topics/nest-events
+```
+
+### 4. Set Up Cloudflare Tunnel
+
+```bash
+# Install cloudflared
+curl -L -o ~/.local/bin/cloudflared https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64
+chmod +x ~/.local/bin/cloudflared
+
+# Authenticate (opens browser)
+~/.local/bin/cloudflared tunnel login
+
+# Create named tunnel
+~/.local/bin/cloudflared tunnel create nest-webhook
+
+# Note the Tunnel ID (UUID) from output
+```
+
+Create `~/.cloudflared/config.yml`:
+
+```yaml
+tunnel: nest-webhook
+credentials-file: /home/YOUR_USER/.cloudflared/TUNNEL_ID.json
+
+ingress:
+  - hostname: nest.yourdomain.com
+    service: http://localhost:8420
+  - service: http_status:404
+```
+
+Create DNS route:
+
+```bash
+~/.local/bin/cloudflared tunnel route dns nest-webhook nest.yourdomain.com
+```
+
+### 5. Create Systemd Services
+
+**Webhook server** (`/etc/systemd/system/nest-webhook.service`):
+
+```ini
+[Unit]
+Description=Nest Pub/Sub Webhook Server
+After=network.target
+
+[Service]
+Type=simple
+User=YOUR_USER
+Environment=CLAWDBOT_GATEWAY_URL=http://localhost:18789
+Environment=CLAWDBOT_HOOKS_TOKEN=your-hooks-token-here
+ExecStart=/usr/bin/python3 /path/to/skills/nest-devices/scripts/nest-webhook.py
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
+```
+
+**Cloudflare tunnel** (`/etc/systemd/system/cloudflared-nest.service`):
+
+```ini
+[Unit]
+Description=Cloudflare Tunnel for Nest Webhook
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=YOUR_USER
+ExecStart=/home/YOUR_USER/.local/bin/cloudflared tunnel run nest-webhook
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
+```
+
+Enable and start:
+
+```bash
+sudo systemctl daemon-reload
+sudo systemctl enable --now nest-webhook cloudflared-nest
+```
+
+### 6. Create Pub/Sub Push Subscription
+
+```bash
+gcloud pubsub subscriptions create nest-events-sub \
+  --topic=nest-events \
+  --push-endpoint="https://nest.yourdomain.com/nest/events" \
+  --ack-deadline=30
+```
+
+### 7. Test
+
+```bash
+# Test webhook endpoint
+curl https://nest.yourdomain.com/health
+
+# Simulate doorbell event
+curl -X POST http://localhost:8420/nest/events \
+  -H "Content-Type: application/json" \
+  -d '{"message":{"data":"eyJyZXNvdXJjZVVwZGF0ZSI6eyJuYW1lIjoiZW50ZXJwcmlzZXMvdGVzdC9kZXZpY2VzL0RPT1JCRUxMLTAxIiwiZXZlbnRzIjp7InNkbS5kZXZpY2VzLmV2ZW50cy5Eb29yYmVsbENoaW1lLkNoaW1lIjp7ImV2ZW50SWQiOiJ0ZXN0In19fX0="}}'
+```
+
+### Supported Events
+
+| Event | Alert |
+|-------|-------|
+| `DoorbellChime.Chime` | 🔔 Doorbell rang! |
+| `CameraMotion.Motion` | 📹 Motion detected |
+| `CameraPerson.Person` | 🚶 Person detected |
+| `CameraSound.Sound` | 🔊 Sound detected |
+| `CameraClipPreview.ClipPreview` | 🎬 Clip ready |
+
+---
+
 ## Limitations
 
 - Camera streams expire after ~5 minutes
-- Real-time events (doorbell, motion) require Google Cloud Pub/Sub subscription
+- Real-time events require Pub/Sub setup (see above)
+- Quick tunnels (without Cloudflare account) have no uptime guarantee
 - Some older Nest devices may not support all features
