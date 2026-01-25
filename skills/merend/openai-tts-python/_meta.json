@@ -1,0 +1,11 @@
+{
+  "owner": "merend",
+  "slug": "openai-tts-python",
+  "displayName": "openai-tts-python",
+  "latest": {
+    "version": "1.0.1",
+    "publishedAt": 1769341047247,
+    "commit": null
+  },
+  "history": []
+}

@@ -1,0 +1,91 @@
+{
+  "name": "openai-tts",
+  "display_name": "OpenAI TTS",
+  "version": "1.0.0",
+  "description": "Text-to-speech conversion using OpenAI's TTS API for generating high-quality, natural-sounding audio from text.",
+  "summary": "Convert text to natural-sounding speech using OpenAI's TTS API. Features 6 voice options (alloy, echo, fable, onyx, nova, shimmer), adjustable speed (0.25x-4.0x), HD quality model, and multiple output formats (mp3, opus, aac, flac). Activates on phrases like 'read this to me', 'text to speech', 'tts', or voice preferences.",
+  "author": "clawdbot",
+  "license": "MIT",
+  "keywords": [
+    "tts",
+    "text-to-speech",
+    "openai",
+    "audio",
+    "voice",
+    "speech",
+    "podcast",
+    "narration"
+  ],
+  "category": "audio",
+  "requirements": {
+    "env_vars": ["OPENAI_API_KEY"],
+    "python_packages": ["openai", "pydub"],
+    "system_packages": ["ffmpeg"]
+  },
+  "activation": {
+    "triggers": [
+      "read this to me",
+      "convert to audio",
+      "generate speech",
+      "make this an audio file",
+      "text to speech",
+      "tts",
+      "openai tts",
+      "voice",
+      "podcast",
+      "narrate",
+      "speak",
+      "vocalize"
+    ],
+    "keywords": ["tts", "audio", "voice", "speech", "podcast", "mp3", "speed"],
+    "file_extensions": [".mp3", ".opus", ".aac", ".flac"]
+  },
+  "parameters": {
+    "voice": {
+      "type": "string",
+      "default": "onyx",
+      "options": ["alloy", "echo", "fable", "onyx", "nova", "shimmer"],
+      "description": "Voice to use for speech generation"
+    },
+    "model": {
+      "type": "string",
+      "default": "tts-1",
+      "options": ["tts-1", "tts-1-hd"],
+      "description": "Model quality (tts-1 = standard, tts-1-hd = high quality)"
+    },
+    "speed": {
+      "type": "number",
+      "default": 1.0,
+      "min": 0.25,
+      "max": 4.0,
+      "description": "Playback speed (0.25 = slowest, 4.0 = fastest)"
+    },
+    "format": {
+      "type": "string",
+      "default": "mp3",
+      "options": ["mp3", "opus", "aac", "flac"],
+      "description": "Output audio format"
+    }
+  },
+  "voices": {
+    "alloy": {"type": "neutral", "description": "Balanced, versatile"},
+    "echo": {"type": "male", "description": "Warm, conversational"},
+    "fable": {"type": "neutral", "description": "Expressive, storytelling"},
+    "onyx": {"type": "male", "description": "Deep, authoritative"},
+    "nova": {"type": "female", "description": "Friendly, upbeat"},
+    "shimmer": {"type": "female", "description": "Clear, professional"}
+  },
+  "limits": {
+    "max_chars_per_request": 4096,
+    "supported_languages": "All languages supported by OpenAI TTS"
+  },
+  "pricing": {
+    "tts-1": "$0.015 per 1,000 characters",
+    "tts-1-hd": "$0.030 per 1,000 characters"
+  },
+  "links": {
+    "documentation": "https://platform.openai.com/docs/guides/text-to-speech",
+    "api_reference": "https://platform.openai.com/docs/api-reference/audio/createSpeech",
+    "pricing": "https://openai.com/pricing"
+  }
+}
