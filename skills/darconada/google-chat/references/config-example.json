@@ -1,0 +1,11 @@
+{
+  "webhooks": {
+    "my-channel": "https://chat.googleapis.com/v1/spaces/SPACE_ID/messages?key=YOUR_KEY&token=YOUR_TOKEN",
+    "engineering": "https://chat.googleapis.com/v1/spaces/...",
+    "alerts": "https://chat.googleapis.com/v1/spaces/..."
+  },
+  "oauth": {
+    "credentials_path": "./google-chat-oauth-credentials.json",
+    "token_path": "./google-chat-token.json"
+  }
+}
