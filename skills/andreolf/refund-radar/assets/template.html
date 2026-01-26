@@ -1,0 +1,808 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Refund Radar | {{MONTH}} Statement Audit</title>
+    <style>
+        :root {
+            --bg-primary: #0d1117;
+            --bg-secondary: #161b22;
+            --bg-tertiary: #21262d;
+            --text-primary: #e6edf3;
+            --text-secondary: #8b949e;
+            --text-muted: #6e7681;
+            --accent: #58a6ff;
+            --accent-hover: #79b8ff;
+            --success: #3fb950;
+            --warning: #d29922;
+            --danger: #f85149;
+            --border: #30363d;
+            --shadow: rgba(0, 0, 0, 0.4);
+            --font-mono: "SF Mono", "Fira Code", "JetBrains Mono", monospace;
+            --font-sans: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+
+        .light-mode {
+            --bg-primary: #ffffff;
+            --bg-secondary: #f6f8fa;
+            --bg-tertiary: #eaeef2;
+            --text-primary: #1f2328;
+            --text-secondary: #656d76;
+            --text-muted: #8c959f;
+            --accent: #0969da;
+            --accent-hover: #0550ae;
+            --success: #1a7f37;
+            --warning: #9a6700;
+            --danger: #cf222e;
+            --border: #d0d7de;
+            --shadow: rgba(0, 0, 0, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font-sans);
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .logo-icon {
+            font-size: 1.75rem;
+        }
+
+        h1 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            letter-spacing: -0.02em;
+        }
+
+        .month-badge {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            font-weight: 400;
+            margin-left: 0.5rem;
+        }
+
+        .controls {
+            display: flex;
+            gap: 0.75rem;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+
+        .btn:hover {
+            background: var(--bg-tertiary);
+            border-color: var(--text-muted);
+        }
+
+        .btn-icon {
+            font-size: 1rem;
+        }
+
+        /* Summary Cards */
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .summary-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1.25rem;
+        }
+
+        .summary-label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-muted);
+            margin-bottom: 0.25rem;
+        }
+
+        .summary-value {
+            font-size: 1.75rem;
+            font-weight: 600;
+            font-family: var(--font-mono);
+        }
+
+        .summary-value.danger { color: var(--danger); }
+        .summary-value.warning { color: var(--warning); }
+        .summary-value.success { color: var(--success); }
+        .summary-value.accent { color: var(--accent); }
+
+        /* Sections */
+        .section {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+            overflow: hidden;
+        }
+
+        .section.hidden {
+            display: none;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 1.25rem;
+            background: var(--bg-tertiary);
+            cursor: pointer;
+            user-select: none;
+            transition: background 0.15s ease;
+        }
+
+        .section-header:hover {
+            background: var(--border);
+        }
+
+        .section-title {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-weight: 600;
+            font-size: 0.9375rem;
+        }
+
+        .section-count {
+            background: var(--bg-primary);
+            color: var(--text-secondary);
+            padding: 0.125rem 0.5rem;
+            border-radius: 10px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        .section-toggle {
+            color: var(--text-muted);
+            font-size: 0.875rem;
+            transition: transform 0.2s ease;
+        }
+
+        .section.collapsed .section-toggle {
+            transform: rotate(-90deg);
+        }
+
+        .section.collapsed .section-content {
+            display: none;
+        }
+
+        .section-content {
+            padding: 0;
+        }
+
+        /* Transaction Table */
+        .tx-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .tx-table th,
+        .tx-table td {
+            padding: 0.875rem 1.25rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .tx-table th {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-muted);
+            font-weight: 500;
+            background: var(--bg-secondary);
+        }
+
+        .tx-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .tx-table tr:hover td {
+            background: var(--bg-tertiary);
+        }
+
+        .tx-date {
+            font-family: var(--font-mono);
+            font-size: 0.8125rem;
+            color: var(--text-secondary);
+            white-space: nowrap;
+        }
+
+        .tx-merchant {
+            font-weight: 500;
+        }
+
+        .tx-merchant.blurred {
+            filter: blur(5px);
+            user-select: none;
+        }
+
+        .tx-amount {
+            font-family: var(--font-mono);
+            font-weight: 500;
+            text-align: right;
+            white-space: nowrap;
+        }
+
+        .tx-amount.negative {
+            color: var(--danger);
+        }
+
+        .tx-amount.positive {
+            color: var(--success);
+        }
+
+        .tx-cadence {
+            font-size: 0.8125rem;
+            color: var(--text-muted);
+        }
+
+        .tx-next {
+            font-size: 0.8125rem;
+            color: var(--text-secondary);
+            font-family: var(--font-mono);
+        }
+
+        /* Severity Badge */
+        .severity {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.375rem;
+            padding: 0.25rem 0.625rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+        }
+
+        .severity.high {
+            background: rgba(248, 81, 73, 0.15);
+            color: var(--danger);
+        }
+
+        .severity.medium {
+            background: rgba(210, 153, 34, 0.15);
+            color: var(--warning);
+        }
+
+        .severity.low {
+            background: rgba(139, 148, 158, 0.15);
+            color: var(--text-secondary);
+        }
+
+        .tx-reason {
+            font-size: 0.8125rem;
+            color: var(--text-secondary);
+            max-width: 300px;
+        }
+
+        /* Action Buttons */
+        .tx-actions {
+            display: flex;
+            gap: 0.5rem;
+            justify-content: flex-end;
+        }
+
+        .action-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.375rem;
+            padding: 0.375rem 0.75rem;
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            background: transparent;
+            color: var(--accent);
+            font-size: 0.75rem;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            white-space: nowrap;
+        }
+
+        .action-btn:hover {
+            background: var(--accent);
+            color: var(--bg-primary);
+            border-color: var(--accent);
+        }
+
+        .action-btn.copied {
+            background: var(--success);
+            border-color: var(--success);
+            color: white;
+        }
+
+        /* Refund Templates */
+        .template-card {
+            padding: 1.25rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .template-card:last-child {
+            border-bottom: none;
+        }
+
+        .template-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1rem;
+        }
+
+        .template-meta {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+
+        .template-merchant {
+            font-weight: 600;
+            font-size: 1rem;
+        }
+
+        .template-merchant.blurred {
+            filter: blur(5px);
+            user-select: none;
+        }
+
+        .template-details {
+            font-size: 0.8125rem;
+            color: var(--text-secondary);
+            font-family: var(--font-mono);
+        }
+
+        .template-tabs {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .template-tab {
+            padding: 0.375rem 0.75rem;
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            background: transparent;
+            color: var(--text-secondary);
+            font-size: 0.75rem;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+
+        .template-tab.active {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: var(--bg-primary);
+        }
+
+        .template-content {
+            position: relative;
+            background: var(--bg-primary);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 1rem;
+            font-family: var(--font-mono);
+            font-size: 0.8125rem;
+            line-height: 1.7;
+            white-space: pre-wrap;
+        }
+
+        .template-copy {
+            position: absolute;
+            top: 0.75rem;
+            right: 0.75rem;
+        }
+
+        /* Footer */
+        footer {
+            text-align: center;
+            padding: 2rem;
+            color: var(--text-muted);
+            font-size: 0.8125rem;
+        }
+
+        footer a {
+            color: var(--accent);
+            text-decoration: none;
+        }
+
+        footer a:hover {
+            text-decoration: underline;
+        }
+
+        /* Empty state */
+        .empty-state {
+            padding: 3rem;
+            text-align: center;
+            color: var(--text-muted);
+        }
+
+        .empty-state-icon {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+
+            header {
+                flex-direction: column;
+                gap: 1rem;
+                align-items: flex-start;
+            }
+
+            .controls {
+                width: 100%;
+            }
+
+            .btn {
+                flex: 1;
+                justify-content: center;
+            }
+
+            .summary-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .tx-table {
+                font-size: 0.875rem;
+            }
+
+            .tx-table th,
+            .tx-table td {
+                padding: 0.75rem;
+            }
+
+            .tx-reason {
+                max-width: 150px;
+            }
+        }
+
+        /* Print styles */
+        @media print {
+            .controls, .action-btn, .template-copy {
+                display: none !important;
+            }
+
+            .section.collapsed .section-content {
+                display: block !important;
+            }
+
+            body {
+                background: white;
+                color: black;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo">
+                <span class="logo-icon">📡</span>
+                <h1>Refund Radar<span class="month-badge">{{MONTH}}</span></h1>
+            </div>
+            <div class="controls">
+                <button class="btn" onclick="togglePrivacy()" id="privacyBtn">
+                    <span class="btn-icon">👁</span>
+                    <span id="privacyLabel">Hide Names</span>
+                </button>
+                <button class="btn" onclick="toggleTheme()">
+                    <span class="btn-icon" id="themeIcon">☀️</span>
+                    <span id="themeLabel">Light</span>
+                </button>
+            </div>
+        </header>
+
+        <!-- Summary -->
+        <div class="summary-grid">
+            <div class="summary-card">
+                <div class="summary-label">Total Transactions</div>
+                <div class="summary-value accent">{{TOTAL_TRANSACTIONS}}</div>
+            </div>
+            <div class="summary-card">
+                <div class="summary-label">Total Spent</div>
+                <div class="summary-value danger">{{TOTAL_SPENT}}</div>
+            </div>
+            <div class="summary-card">
+                <div class="summary-label">Recurring</div>
+                <div class="summary-value warning">{{RECURRING_COUNT}}</div>
+            </div>
+            <div class="summary-card">
+                <div class="summary-label">Flagged</div>
+                <div class="summary-value danger">{{FLAGGED_COUNT}}</div>
+            </div>
+        </div>
+
+        <!-- Recurring Charges -->
+        <div class="section {{RECURRING_HIDDEN}}" id="recurring-section">
+            <div class="section-header" onclick="toggleSection('recurring-section')">
+                <div class="section-title">
+                    <span>🔄</span>
+                    Recurring Charges
+                    <span class="section-count">{{RECURRING_COUNT}}</span>
+                </div>
+                <span class="section-toggle">▼</span>
+            </div>
+            <div class="section-content">
+                <table class="tx-table">
+                    <thead>
+                        <tr>
+                            <th>Merchant</th>
+                            <th>Amount</th>
+                            <th>Cadence</th>
+                            <th>Last Charge</th>
+                            <th>Next Expected</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {{RECURRING_ROWS}}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Unexpected Charges -->
+        <div class="section {{UNEXPECTED_HIDDEN}}" id="unexpected-section">
+            <div class="section-header" onclick="toggleSection('unexpected-section')">
+                <div class="section-title">
+                    <span>⚠️</span>
+                    Unexpected Charges
+                    <span class="section-count">{{UNEXPECTED_COUNT}}</span>
+                </div>
+                <span class="section-toggle">▼</span>
+            </div>
+            <div class="section-content">
+                <table class="tx-table">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Merchant</th>
+                            <th>Amount</th>
+                            <th>Severity</th>
+                            <th>Reason</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {{UNEXPECTED_ROWS}}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Duplicates -->
+        <div class="section {{DUPLICATES_HIDDEN}}" id="duplicates-section">
+            <div class="section-header" onclick="toggleSection('duplicates-section')">
+                <div class="section-title">
+                    <span>📋</span>
+                    Duplicates
+                    <span class="section-count">{{DUPLICATES_COUNT}}</span>
+                </div>
+                <span class="section-toggle">▼</span>
+            </div>
+            <div class="section-content">
+                <table class="tx-table">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Merchant</th>
+                            <th>Amount</th>
+                            <th>Reason</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {{DUPLICATES_ROWS}}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Fee-like Charges -->
+        <div class="section {{FEES_HIDDEN}}" id="fees-section">
+            <div class="section-header" onclick="toggleSection('fees-section')">
+                <div class="section-title">
+                    <span>💸</span>
+                    Fee-like Charges
+                    <span class="section-count">{{FEES_COUNT}}</span>
+                </div>
+                <span class="section-toggle">▼</span>
+            </div>
+            <div class="section-content">
+                <table class="tx-table">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Merchant</th>
+                            <th>Amount</th>
+                            <th>Reason</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {{FEES_ROWS}}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Refund Templates -->
+        <div class="section {{TEMPLATES_HIDDEN}}" id="templates-section">
+            <div class="section-header" onclick="toggleSection('templates-section')">
+                <div class="section-title">
+                    <span>✉️</span>
+                    Refund Request Templates
+                    <span class="section-count">{{TEMPLATES_COUNT}}</span>
+                </div>
+                <span class="section-toggle">▼</span>
+            </div>
+            <div class="section-content">
+                {{TEMPLATE_CARDS}}
+            </div>
+        </div>
+
+        <!-- Needs Review -->
+        <div class="section {{REVIEW_HIDDEN}}" id="review-section">
+            <div class="section-header" onclick="toggleSection('review-section')">
+                <div class="section-title">
+                    <span>🔍</span>
+                    Needs Review
+                    <span class="section-count">{{REVIEW_COUNT}}</span>
+                </div>
+                <span class="section-toggle">▼</span>
+            </div>
+            <div class="section-content">
+                <table class="tx-table">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Merchant</th>
+                            <th>Amount</th>
+                            <th>Reason</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {{REVIEW_ROWS}}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <footer>
+            Generated by <a href="https://clawdhub.com">refund-radar</a> • {{GENERATED_AT}}
+        </footer>
+    </div>
+
+    <script>
+        // Data injected by Python
+        const reportData = {{REPORT_DATA_JSON}};
+
+        // Privacy toggle
+        let privacyMode = false;
+        function togglePrivacy() {
+            privacyMode = !privacyMode;
+            document.querySelectorAll('.tx-merchant, .template-merchant').forEach(el => {
+                el.classList.toggle('blurred', privacyMode);
+            });
+            document.getElementById('privacyLabel').textContent = privacyMode ? 'Show Names' : 'Hide Names';
+        }
+
+        // Theme toggle
+        function toggleTheme() {
+            document.body.classList.toggle('light-mode');
+            const isLight = document.body.classList.contains('light-mode');
+            document.getElementById('themeIcon').textContent = isLight ? '🌙' : '☀️';
+            document.getElementById('themeLabel').textContent = isLight ? 'Dark' : 'Light';
+            localStorage.setItem('refund-radar-theme', isLight ? 'light' : 'dark');
+        }
+
+        // Load saved theme
+        if (localStorage.getItem('refund-radar-theme') === 'light') {
+            document.body.classList.add('light-mode');
+            document.getElementById('themeIcon').textContent = '🌙';
+            document.getElementById('themeLabel').textContent = 'Dark';
+        }
+
+        // Section collapse
+        function toggleSection(sectionId) {
+            document.getElementById(sectionId).classList.toggle('collapsed');
+        }
+
+        // Copy to clipboard
+        function copyTemplate(btn, templateId) {
+            const content = document.getElementById(templateId).textContent;
+            navigator.clipboard.writeText(content).then(() => {
+                btn.classList.add('copied');
+                btn.innerHTML = '✓ Copied';
+                setTimeout(() => {
+                    btn.classList.remove('copied');
+                    btn.innerHTML = '📋 Copy';
+                }, 2000);
+            });
+        }
+
+        function copyRefundRequest(btn, merchant, amount, date) {
+            const template = `Hello,
+
+I am writing to request a refund for a charge on my account.
+
+Merchant: ${merchant}
+Amount: ${amount}
+Date: ${date}
+
+I did not authorize this transaction and request a full refund.
+
+Please confirm receipt of this request and provide a timeline for resolution.
+
+Thank you.`;
+            navigator.clipboard.writeText(template).then(() => {
+                btn.classList.add('copied');
+                btn.innerHTML = '✓';
+                setTimeout(() => {
+                    btn.classList.remove('copied');
+                    btn.innerHTML = '📋';
+                }, 2000);
+            });
+        }
+
+        // Template tab switching
+        function switchTemplate(cardId, tone) {
+            const card = document.getElementById(cardId);
+            card.querySelectorAll('.template-tab').forEach(tab => {
+                tab.classList.toggle('active', tab.dataset.tone === tone);
+            });
+            card.querySelectorAll('.template-content').forEach(content => {
+                content.style.display = content.dataset.tone === tone ? 'block' : 'none';
+            });
+        }
+    </script>
+</body>
+</html>
