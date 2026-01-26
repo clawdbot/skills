@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>watch-my-money · {{MONTH}}</title>
+    <style>
+        :root {
+            --bg: #fafafa;
+            --text: #1a1a1a;
+            --muted: #666;
+            --border: #e0e0e0;
+            --accent: #0d9488;
+            --danger: #dc2626;
+            --warning: #f59e0b;
+            --success: #059669;
+            --income: #0891b2;
+            --card-bg: #fff;
+            --progress-bg: #e5e7eb;
+        }
+        
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg: #0f0f0f;
+                --text: #e5e5e5;
+                --muted: #a3a3a3;
+                --border: #2a2a2a;
+                --accent: #2dd4bf;
+                --danger: #f87171;
+                --warning: #fbbf24;
+                --success: #34d399;
+                --income: #22d3ee;
+                --card-bg: #171717;
+                --progress-bg: #262626;
+            }
+        }
+        
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        
+        body {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 2rem 1.5rem;
+            font-family: 'IBM Plex Sans', system-ui, -apple-system, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+        }
+        
+        /* Header Card - Receipt Style */
+        .header-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            position: relative;
+        }
+        
+        .header-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--accent), var(--income));
+            border-radius: 12px 12px 0 0;
+        }
+        
+        .scope {
+            font-size: 0.875rem;
+            color: var(--muted);
+            margin-bottom: 0.5rem;
+            font-family: 'IBM Plex Mono', monospace;
+        }
+        
+        .month-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+        }
+        
+        .summary-item {
+            text-align: center;
+            padding: 1rem;
+            background: var(--bg);
+            border-radius: 8px;
+        }
+        
+        .summary-label {
+            font-size: 0.75rem;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.25rem;
+        }
+        
+        .summary-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            font-family: 'IBM Plex Mono', monospace;
+        }
+        
+        .summary-value.income { color: var(--income); }
+        .summary-value.expenses { color: var(--danger); }
+        .summary-value.net.positive { color: var(--success); }
+        .summary-value.net.negative { color: var(--danger); }
+        
+        .timestamp {
+            font-size: 0.75rem;
+            color: var(--muted);
+            text-align: right;
+            margin-top: 1rem;
+        }
+        
+        /* Controls */
+        .controls {
+            display: flex;
+            justify-content: flex-end;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .control-btn {
+            padding: 0.5rem 1rem;
+            font-size: 0.75rem;
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            cursor: pointer;
+            color: var(--muted);
+            transition: all 0.2s;
+        }
+        
+        .control-btn:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+        
+        /* Alerts Section */
+        .alerts-section {
+            margin-bottom: 2rem;
+        }
+        
+        .alerts-section.empty { display: none; }
+        
+        .alert-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1rem 1.25rem;
+            margin-bottom: 0.75rem;
+            display: flex;
+            align-items: flex-start;
+            gap: 0.75rem;
+        }
+        
+        .alert-icon {
+            font-size: 1.25rem;
+            flex-shrink: 0;
+        }
+        
+        .alert-icon.warning { color: var(--warning); }
+        .alert-icon.danger { color: var(--danger); }
+        .alert-icon.info { color: var(--income); }
+        
+        .alert-content {
+            flex: 1;
+        }
+        
+        .alert-title {
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+        
+        .alert-detail {
+            font-size: 0.875rem;
+            color: var(--muted);
+        }
+        
+        /* Categories Section */
+        .section {
+            margin-bottom: 2rem;
+        }
+        
+        .section.empty { display: none; }
+        
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid var(--border);
+            cursor: pointer;
+            user-select: none;
+        }
+        
+        .section-header::before {
+            content: '▼';
+            font-size: 0.6rem;
+            color: var(--muted);
+            transition: transform 0.2s;
+        }
+        
+        .section.collapsed .section-header::before {
+            transform: rotate(-90deg);
+        }
+        
+        .section.collapsed .section-content {
+            display: none;
+        }
+        
+        .section-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+        
+        .section-count {
+            margin-left: auto;
+            font-size: 0.8rem;
+            color: var(--muted);
+        }
+        
+        /* Category Cards */
+        .category-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1rem 1.25rem;
+            margin-bottom: 0.75rem;
+        }
+        
+        .category-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.75rem;
+        }
+        
+        .category-name {
+            font-weight: 600;
+            text-transform: capitalize;
+        }
+        
+        .category-amount {
+            font-family: 'IBM Plex Mono', monospace;
+            font-weight: 600;
+        }
+        
+        .category-amount.over-budget { color: var(--danger); }
+        
+        .progress-bar {
+            height: 6px;
+            background: var(--progress-bg);
+            border-radius: 3px;
+            overflow: hidden;
+            margin-bottom: 0.5rem;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            border-radius: 3px;
+            transition: width 0.3s;
+        }
+        
+        .progress-fill.ok { background: var(--success); }
+        .progress-fill.warning { background: var(--warning); }
+        .progress-fill.danger { background: var(--danger); }
+        
+        .category-meta {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.75rem;
+            color: var(--muted);
+        }
+        
+        .no-budget {
+            font-size: 0.75rem;
+            color: var(--muted);
+            font-style: italic;
+        }
+        
+        /* Merchants Table */
+        .merchants-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: var(--card-bg);
+            border-radius: 8px;
+            overflow: hidden;
+            border: 1px solid var(--border);
+        }
+        
+        .merchants-table th,
+        .merchants-table td {
+            padding: 0.75rem 1rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+        
+        .merchants-table th {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--muted);
+            font-weight: 500;
+        }
+        
+        .merchants-table tr:last-child td {
+            border-bottom: none;
+        }
+        
+        .merchant-name {
+            font-weight: 500;
+        }
+        
+        .merchant-amount {
+            font-family: 'IBM Plex Mono', monospace;
+            text-align: right;
+        }
+        
+        .merchant-count {
+            color: var(--muted);
+            font-size: 0.875rem;
+        }
+        
+        .category-badge {
+            display: inline-block;
+            padding: 0.2rem 0.5rem;
+            font-size: 0.7rem;
+            background: var(--bg);
+            border-radius: 4px;
+            color: var(--muted);
+            text-transform: capitalize;
+        }
+        
+        /* Privacy Mode */
+        body.privacy-mode .blur-target {
+            filter: blur(5px);
+            user-select: none;
+        }
+        
+        body.privacy-mode .blur-target:hover {
+            filter: none;
+        }
+        
+        /* Floating Button */
+        .floating-btn {
+            position: fixed;
+            bottom: 1.5rem;
+            right: 1.5rem;
+            background: var(--accent);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.25rem;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            transition: all 0.2s;
+        }
+        
+        .floating-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+        }
+        
+        .floating-btn.copied {
+            background: var(--success);
+        }
+        
+        /* Responsive */
+        @media (max-width: 600px) {
+            .summary-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            body {
+                padding: 1rem;
+            }
+        }
+        
+        /* Font Import */
+        @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap');
+    </style>
+</head>
+<body>
+    <!-- HEADER CARD -->
+    <div class="header-card">
+        <p class="scope">{{TRANSACTION_COUNT}} transactions · {{CURRENCY}}</p>
+        <h1 class="month-title">{{MONTH_DISPLAY}}</h1>
+        
+        <div class="summary-grid">
+            <div class="summary-item">
+                <div class="summary-label">Income</div>
+                <div class="summary-value income blur-target">{{INCOME}}</div>
+            </div>
+            <div class="summary-item">
+                <div class="summary-label">Expenses</div>
+                <div class="summary-value expenses blur-target">{{EXPENSES}}</div>
+            </div>
+            <div class="summary-item">
+                <div class="summary-label">Net</div>
+                <div class="summary-value net {{NET_CLASS}} blur-target">{{NET}}</div>
+            </div>
+        </div>
+        
+        <p class="timestamp">Generated {{TIMESTAMP}}</p>
+    </div>
+    
+    <!-- CONTROLS -->
+    <div class="controls">
+        <button class="control-btn" onclick="togglePrivacy()">🔒 Privacy</button>
+        <button class="control-btn" onclick="expandAll()">Expand All</button>
+    </div>
+    
+    <!-- ALERTS SECTION -->
+    <div class="alerts-section {{ALERTS_EMPTY_CLASS}}" id="alerts-section">
+        <div class="section-header" onclick="this.parentElement.classList.toggle('collapsed')">
+            <span class="section-title">⚠️ Alerts</span>
+            <span class="section-count">{{ALERTS_COUNT}} alerts</span>
+        </div>
+        <div class="section-content">
+            <!-- TEMPLATE: Alert Card
+            <div class="alert-card">
+                <span class="alert-icon warning">⚡</span>
+                <div class="alert-content">
+                    <div class="alert-title">Alert Title</div>
+                    <div class="alert-detail">Alert detail message</div>
+                </div>
+            </div>
+            -->
+            {{ALERTS_HTML}}
+        </div>
+    </div>
+    
+    <!-- CATEGORIES SECTION -->
+    <div class="section" id="categories-section">
+        <div class="section-header" onclick="this.parentElement.classList.toggle('collapsed')">
+            <span class="section-title">📊 Categories</span>
+            <span class="section-count">{{CATEGORIES_COUNT}} categories</span>
+        </div>
+        <div class="section-content">
+            <!-- TEMPLATE: Category Card with Budget
+            <div class="category-card">
+                <div class="category-header">
+                    <span class="category-name">Category Name</span>
+                    <span class="category-amount blur-target">$XXX</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill ok" style="width: 50%"></div>
+                </div>
+                <div class="category-meta">
+                    <span>50% of $XXX budget</span>
+                    <span>$XXX remaining</span>
+                </div>
+            </div>
+            -->
+            <!-- TEMPLATE: Category Card without Budget
+            <div class="category-card">
+                <div class="category-header">
+                    <span class="category-name">Category Name</span>
+                    <span class="category-amount blur-target">$XXX</span>
+                </div>
+                <div class="no-budget">No budget set</div>
+            </div>
+            -->
+            {{CATEGORIES_HTML}}
+        </div>
+    </div>
+    
+    <!-- TOP MERCHANTS SECTION -->
+    <div class="section" id="merchants-section">
+        <div class="section-header" onclick="this.parentElement.classList.toggle('collapsed')">
+            <span class="section-title">🏪 Top Merchants</span>
+            <span class="section-count">by spend</span>
+        </div>
+        <div class="section-content">
+            <table class="merchants-table">
+                <thead>
+                    <tr>
+                        <th>Merchant</th>
+                        <th>Category</th>
+                        <th style="text-align: right">Amount</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- TEMPLATE: Merchant Row
+                    <tr>
+                        <td>
+                            <span class="merchant-name blur-target">Merchant Name</span>
+                            <span class="merchant-count">× 5</span>
+                        </td>
+                        <td><span class="category-badge">category</span></td>
+                        <td class="merchant-amount blur-target">$XXX</td>
+                    </tr>
+                    -->
+                    {{MERCHANTS_HTML}}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+    <!-- FLOATING BUTTON -->
+    <button class="floating-btn" onclick="copySummary()">📋 Copy Summary</button>
+    
+    <script>
+        function togglePrivacy() {
+            document.body.classList.toggle('privacy-mode');
+            const btn = document.querySelector('.control-btn');
+            btn.textContent = document.body.classList.contains('privacy-mode') 
+                ? '🔓 Show' 
+                : '🔒 Privacy';
+        }
+        
+        function expandAll() {
+            document.querySelectorAll('.section.collapsed').forEach(s => {
+                s.classList.remove('collapsed');
+            });
+        }
+        
+        function copySummary() {
+            const income = document.querySelector('.summary-value.income')?.textContent || '';
+            const expenses = document.querySelector('.summary-value.expenses')?.textContent || '';
+            const net = document.querySelector('.summary-value.net')?.textContent || '';
+            const month = document.querySelector('.month-title')?.textContent || '';
+            
+            const text = `${month}\nIncome: ${income}\nExpenses: ${expenses}\nNet: ${net}`;
+            
+            navigator.clipboard.writeText(text).then(() => {
+                const btn = document.querySelector('.floating-btn');
+                btn.classList.add('copied');
+                btn.textContent = '✓ Copied!';
+                setTimeout(() => {
+                    btn.classList.remove('copied');
+                    btn.textContent = '📋 Copy Summary';
+                }, 1500);
+            });
+        }
+        
+        // Auto-hide empty sections
+        document.querySelectorAll('.section').forEach(section => {
+            const content = section.querySelector('.section-content');
+            if (content && content.children.length === 0) {
+                section.classList.add('empty');
+            }
+        });
+    </script>
+</body>
+</html>
