@@ -1,0 +1,11 @@
+{
+  "owner": "spendit-ai",
+  "slug": "solana-skills",
+  "displayName": "Solana",
+  "latest": {
+    "version": "0.1.1",
+    "publishedAt": 1769389616647,
+    "commit": null
+  },
+  "history": []
+}
