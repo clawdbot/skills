@@ -1,0 +1,141 @@
+{
+  "id": "discord-voice",
+  "name": "Discord Voice",
+  "description": "Real-time voice conversations in Discord voice channels",
+  "configSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "enabled": {
+        "type": "boolean",
+        "default": true
+      },
+      "sttProvider": {
+        "type": "string",
+        "enum": ["whisper", "deepgram"],
+        "default": "whisper"
+      },
+      "streamingSTT": {
+        "type": "boolean",
+        "default": true,
+        "description": "Use streaming STT for lower latency (Deepgram only)"
+      },
+      "ttsProvider": {
+        "type": "string",
+        "enum": ["openai", "elevenlabs"],
+        "default": "openai"
+      },
+      "ttsVoice": {
+        "type": "string",
+        "default": "nova"
+      },
+      "vadSensitivity": {
+        "type": "string",
+        "enum": ["low", "medium", "high"],
+        "default": "medium"
+      },
+      "bargeIn": {
+        "type": "boolean",
+        "default": true,
+        "description": "Stop speaking when user starts talking"
+      },
+      "model": {
+        "type": "string",
+        "description": "LLM model for voice responses (e.g., anthropic/claude-3-5-haiku-latest)"
+      },
+      "thinkLevel": {
+        "type": "string",
+        "enum": ["off", "low", "medium", "high"],
+        "default": "off",
+        "description": "Thinking level for voice responses (lower = faster)"
+      },
+      "allowedUsers": {
+        "type": "array",
+        "items": { "type": "string" },
+        "default": []
+      },
+      "silenceThresholdMs": {
+        "type": "number",
+        "default": 1500
+      },
+      "minAudioMs": {
+        "type": "number",
+        "default": 500
+      },
+      "maxRecordingMs": {
+        "type": "number",
+        "default": 30000
+      },
+      "heartbeatIntervalMs": {
+        "type": "number",
+        "default": 30000,
+        "description": "Connection health check interval in ms"
+      },
+      "autoJoinChannel": {
+        "type": "string",
+        "description": "Voice channel ID to auto-join on startup"
+      },
+      "openai": {
+        "type": "object",
+        "properties": {
+          "apiKey": { "type": "string" },
+          "whisperModel": { "type": "string", "default": "whisper-1" },
+          "ttsModel": { "type": "string", "default": "tts-1" }
+        }
+      },
+      "elevenlabs": {
+        "type": "object",
+        "properties": {
+          "apiKey": { "type": "string" },
+          "voiceId": { "type": "string" },
+          "modelId": { "type": "string", "default": "eleven_multilingual_v2" }
+        }
+      },
+      "deepgram": {
+        "type": "object",
+        "properties": {
+          "apiKey": { "type": "string" },
+          "model": { "type": "string", "default": "nova-2" }
+        }
+      }
+    }
+  },
+  "uiHints": {
+    "enabled": {
+      "label": "Enable Discord Voice",
+      "help": "Enable real-time voice conversations in Discord voice channels"
+    },
+    "sttProvider": {
+      "label": "Speech-to-Text Provider",
+      "help": "Use 'whisper' (OpenAI) or 'deepgram'"
+    },
+    "ttsProvider": {
+      "label": "Text-to-Speech Provider",
+      "help": "Use 'openai' or 'elevenlabs'"
+    },
+    "ttsVoice": {
+      "label": "TTS Voice",
+      "help": "Voice ID for TTS (e.g., 'nova', 'alloy' for OpenAI)"
+    },
+    "vadSensitivity": {
+      "label": "VAD Sensitivity",
+      "help": "Voice activity detection sensitivity (low/medium/high)"
+    },
+    "allowedUsers": {
+      "label": "Allowed Users",
+      "help": "Discord user IDs allowed to use voice (empty = all allowed)"
+    },
+    "openai.apiKey": {
+      "label": "OpenAI API Key",
+      "sensitive": true
+    },
+    "elevenlabs.apiKey": {
+      "label": "ElevenLabs API Key",
+      "sensitive": true
+    },
+    "deepgram.apiKey": {
+      "label": "Deepgram API Key",
+      "sensitive": true
+    }
+  }
+}
