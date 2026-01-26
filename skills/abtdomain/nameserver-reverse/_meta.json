@@ -1,0 +1,11 @@
+{
+  "owner": "abtdomain",
+  "slug": "nameserver-reverse",
+  "displayName": "DomainKts",
+  "latest": {
+    "version": "1.0.0",
+    "publishedAt": 1769427972882,
+    "commit": null
+  },
+  "history": []
+}
