@@ -2,146 +2,154 @@
 name: vap-media
 description: AI image, video, and music generation. Flux, Veo 3.1, Suno V5.
 homepage: https://vapagent.com
-metadata: {"clawdbot":{"emoji":"🎬","requires":{"bins":["curl"],"env":["VAP_API_KEY"]},"primaryEnv":"VAP_API_KEY"}}
+metadata: {"clawdbot":{"emoji":"🎬","requires":{"bins":["curl"]}}}
 ---
 
-# VAP Media Generation
+# VAP Media - AI Media Generation
 
-Generate AI images, videos, and music directly via the VAP API. No local dependencies beyond `curl`.
+Generate images, videos, and music via the VAP API.
 
-## Available Models
+## Mode Selection
 
-| Type | Model | Use Case |
-|------|-------|----------|
-| Image | Flux | Social posts, product mockups |
-| Video | Veo 3.1 | Clips, promos, content |
-| Music | Suno V5 | Background tracks, jingles |
+Check if `VAP_API_KEY` is set:
 
-## Quick Usage
+- **VAP_API_KEY not set** → Use Free Mode (images only, 3/day)
+- **VAP_API_KEY set** → Use Full Mode (image, video, music, unlimited)
 
-### Generate an Image
+---
+
+## Free Mode (No API Key)
+
+Generate images for free. No signup required. 3 per day.
+
+### Generate Image
+
+```bash
+curl -s -X POST https://api.vapagent.com/v3/trial/generate \
+  -H "Content-Type: application/json" \
+  -d '{"prompt":"PROMPT"}'
+```
+
+Returns `{"task_id":"UUID","status":"pending","remaining":2}`.
+
+### Poll Result
+
+```bash
+curl -s https://api.vapagent.com/v3/trial/status/TASK_ID
+```
+
+Returns `{"status":"completed","image_url":"https://..."}` when done.
+
+### Free Mode Errors
+
+- `429` → Daily limit reached. Suggest upgrading: `export VAP_API_KEY=vape_xxx`
+- `503` → Trial service temporarily unavailable.
+
+---
+
+## Full Mode (With API Key)
+
+Unlimited images, video, and music generation.
+
+### Create Task
 
 ```bash
 curl -s -X POST https://api.vapagent.com/v3/tasks \
   -H "Authorization: Bearer $VAP_API_KEY" \
   -H "Content-Type: application/json" \
-  -d '{
-    "type": "image_generation",
-    "params": {
-      "description": "A serene mountain landscape at golden hour",
-      "aspect_ratio": "16:9"
-    }
-  }' | jq -r '.task_id'
+  -d '{"type":"TYPE","params":{"description":"PROMPT"}}'
 ```
 
-### Check Status & Get Result
+Returns `{"task_id":"UUID","status":"pending","estimated_cost":"0.1800"}`.
+
+### Poll Result
 
 ```bash
-curl -s https://api.vapagent.com/v3/tasks/{task_id} \
-  -H "Authorization: Bearer $VAP_API_KEY" | jq '.status, .result.url'
+curl -s https://api.vapagent.com/v3/tasks/TASK_ID \
+  -H "Authorization: Bearer $VAP_API_KEY"
 ```
 
-### Generate Video (Tier 2+ required)
+Returns `{"status":"completed","result":{"output_url":"https://..."}}` when done.
+
+### Task Types
+
+| Type | Model | Params |
+|------|-------|--------|
+| `image` | Flux | `description`, `aspect_ratio` (1:1, 16:9, 9:16) |
+| `video` | Veo 3.1 | `description`, `duration` (4/6/8), `aspect_ratio`, `generate_audio` (bool) |
+| `music` | Suno V5 | `description`, `duration` (30-480), `instrumental` (bool) |
+
+### Full Mode Errors
+
+- `401` → Invalid API key.
+- `402` → Insufficient balance. Top up at https://vapagent.com/dashboard/signup.html
+
+---
+
+## Instructions
+
+When a user asks to create/generate/make an image, video, or music:
+
+1. **Improve the prompt** - Add style, lighting, composition, mood details
+2. **Check mode** - Is `VAP_API_KEY` set?
+3. **Call the appropriate endpoint** - Free or Full mode
+4. **Poll for result** - Check task status until completed
+5. **Return the media URL** to the user
+6. If free mode limit is hit, tell the user: "You've used your 3 free generations today. For unlimited access, set up an API key: https://vapagent.com/dashboard/signup.html"
+
+### Free Mode Example
 
 ```bash
+# Create (no auth needed)
+curl -s -X POST https://api.vapagent.com/v3/trial/generate \
+  -H "Content-Type: application/json" \
+  -d '{"prompt":"A fluffy orange tabby cat on a sunlit windowsill, soft bokeh, golden hour light, photorealistic"}'
+
+# Poll
+curl -s https://api.vapagent.com/v3/trial/status/TASK_ID
+```
+
+### Full Mode Examples
+
+```bash
+# Image
 curl -s -X POST https://api.vapagent.com/v3/tasks \
   -H "Authorization: Bearer $VAP_API_KEY" \
   -H "Content-Type: application/json" \
-  -d '{
-    "type": "video_generation",
-    "params": {
-      "prompt": "Cinematic aerial shot of coastal cliffs",
-      "duration": 8,
-      "aspect_ratio": "16:9"
-    }
-  }'
-```
+  -d '{"type":"image","params":{"description":"A fluffy orange tabby cat on a sunlit windowsill, soft bokeh, golden hour light, photorealistic"}}'
 
-### Generate Music (Tier 2+ required)
-
-```bash
+# Video
 curl -s -X POST https://api.vapagent.com/v3/tasks \
   -H "Authorization: Bearer $VAP_API_KEY" \
   -H "Content-Type: application/json" \
-  -d '{
-    "type": "music_generation",
-    "params": {
-      "prompt": "Upbeat indie folk with acoustic guitar",
-      "duration": 120,
-      "instrumental": false
-    }
-  }'
+  -d '{"type":"video","params":{"description":"Drone shot over misty mountains at sunrise","duration":8}}'
+
+# Music
+curl -s -X POST https://api.vapagent.com/v3/tasks \
+  -H "Authorization: Bearer $VAP_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"type":"music","params":{"description":"Upbeat lo-fi hip hop beat, warm vinyl crackle, chill vibes","duration":120}}'
+
+# Poll (use task_id from response)
+curl -s https://api.vapagent.com/v3/tasks/TASK_ID \
+  -H "Authorization: Bearer $VAP_API_KEY"
 ```
 
-## Setup
+## Prompt Tips
 
-1. **Get API Key:** https://vapagent.com/dashboard/signup.html
-2. **Add to environment:**
-   ```bash
-   export VAP_API_KEY=vape_xxxxxxxxxxxxxxxxxxxx
-   ```
-3. **Or configure in clawdbot.json:**
-   ```json
-   {
-     "skills": {
-       "entries": {
-         "vap-media": {
-           "apiKey": "vape_xxxxxxxxxxxxxxxxxxxx"
-         }
-       }
-     }
-   }
-   ```
+- **Style:** "oil painting", "3D render", "watercolor", "photograph", "flat illustration"
+- **Lighting:** "golden hour", "neon lights", "soft diffused light", "dramatic shadows"
+- **Composition:** "close-up", "aerial view", "wide angle", "rule of thirds"
+- **Mood:** "serene", "energetic", "mysterious", "whimsical"
 
-## Tier System
+## Setup (Optional - for Full Mode)
 
-| Tier | Requirement | Capabilities |
-|------|-------------|--------------|
-| Tier 1 | $1+ deposit | Image only |
-| Tier 2 | $100+ deposit, 50+ tasks | Image + Video + Music |
-
-## Cost Control
-
-VAP uses **reserve-burn-refund** billing:
-
-- **Reserve:** Cost is held before execution
-- **Burn:** Only charged on success
-- **Refund:** Failed tasks are automatically refunded
-
-No surprise charges. You know exact cost before execution.
-
-## Response Format
-
-```json
-{
-  "task_id": "tsk_abc123",
-  "status": "completed",
-  "result": {
-    "url": "https://pub-xxx.r2.dev/output.png",
-    "metadata": {}
-  }
-}
-```
-
-## Example Workflows
-
-### Daily Social Post
-"Generate an inspirational quote image with abstract background" → Post to social media
-
-### Product Mockup
-"Product photo of a minimalist coffee mug on marble surface" → Use for e-commerce
-
-### Content Background Music
-"Calm lo-fi beats for focus and productivity" → Add to video content
+1. Sign up: https://vapagent.com/dashboard/signup.html
+2. Get API key from dashboard
+3. Set: `export VAP_API_KEY=vape_xxxxxxxxxxxxxxxxxxxx`
 
 ## Links
 
-- [API Documentation](https://api.vapagent.com/docs)
-- [Quick Start Guide](https://vapagent.com/quick-start.html)
-- [MCP Integration](https://registry.modelcontextprotocol.io)
+- [Try Free](https://vapagent.com/try)
+- [API Docs](https://api.vapagent.com/docs)
 - [GitHub](https://github.com/vapagentmedia/vap-showcase)
-
-## Support
-
-- Email: support@vapagent.com
-- Issues: https://github.com/vapagentmedia/vap-showcase/issues
