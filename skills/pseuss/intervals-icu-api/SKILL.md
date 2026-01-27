@@ -15,7 +15,7 @@ Get your Athlete ID and API Key from [intervals.icu settings page](https://inter
 
 ```bash
 # Using API Key header
-curl -H "Authorization: ApiKey YOUR_ATHLETE_ID:YOUR_API_KEY" \
+curl -H "Authorization: ApiKey API_KEY:YOUR_API_KEY" \
   https://intervals.icu/api/v1/athlete/YOUR_ATHLETE_ID
 ```
 
@@ -36,13 +36,16 @@ curl -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
 ## Core Concepts
 
 ### Athlete ID
+
 Your unique identifier in Intervals.icu. Used in all API endpoints as `{id}` path parameter.
 
 ### Activities vs Events
+
 - **Activities**: Completed workouts with actual data (GPS, power, HR). Retrieved from `/athlete/{id}/activities`
 - **Events**: Planned workouts on your calendar. Retrieved from `/athlete/{id}/events`
 
 ### Data Fields
+
 Activities and events can return different fields. Use the `fields` query parameter to include/exclude specific data points for more efficient queries.
 
 ---
@@ -55,19 +58,19 @@ Retrieve all activities between two dates, sorted newest to oldest.
 
 ```bash
 # Basic activity list
-curl -H "Authorization: ApiKey YOUR_ATHLETE_ID:YOUR_API_KEY" \
+curl -H "Authorization: ApiKey API_KEY:YOUR_API_KEY" \
   "https://intervals.icu/api/v1/athlete/YOUR_ATHLETE_ID/activities?oldest=2024-01-01&newest=2024-01-31"
 
 # With limit
-curl -H "Authorization: ApiKey YOUR_ATHLETE_ID:YOUR_API_KEY" \
+curl -H "Authorization: ApiKey API_KEY:YOUR_API_KEY" \
   "https://intervals.icu/api/v1/athlete/YOUR_ATHLETE_ID/activities?oldest=2024-01-01&limit=10"
 
 # Specific fields only (more efficient)
-curl -H "Authorization: ApiKey YOUR_ATHLETE_ID:YOUR_API_KEY" \
+curl -H "Authorization: ApiKey API_KEY:YOUR_API_KEY" \
   "https://intervals.icu/api/v1/athlete/YOUR_ATHLETE_ID/activities?oldest=2024-01-01&fields=id,name,start_date_local,type,distance,moving_time,icu_training_load"
 
 # For specific activity type (Ride, Run, Swim, etc.)
-curl -H "Authorization: ApiKey YOUR_ATHLETE_ID:YOUR_API_KEY" \
+curl -H "Authorization: ApiKey API_KEY:YOUR_API_KEY" \
   "https://intervals.icu/api/v1/athlete/YOUR_ATHLETE_ID/activities?oldest=2024-01-01&newest=2024-01-31" | jq '.[] | select(.type == "Ride")'
 ```
 
@@ -77,19 +80,19 @@ Use `fields` parameter to combine activity data with contextual information:
 
 ```bash
 # Power, HR, and load data
-curl -H "Authorization: ApiKey YOUR_ATHLETE_ID:YOUR_API_KEY" \
+curl -H "Authorization: ApiKey API_KEY:YOUR_API_KEY" \
   "https://intervals.icu/api/v1/athlete/YOUR_ATHLETE_ID/activities?oldest=2024-01-01&fields=name,icu_weighted_avg_watts,average_heartrate,icu_training_load,icu_atl,icu_ctl"
 
 # Include fatigue and fitness metrics
-curl -H "Authorization: ApiKey YOUR_ATHLETE_ID:YOUR_API_KEY" \
+curl -H "Authorization: ApiKey API_KEY:YOUR_API_KEY" \
   "https://intervals.icu/api/v1/athlete/YOUR_ATHLETE_ID/activities?oldest=2024-01-01&fields=id,name,type,icu_training_load,icu_atl,icu_ctl,perceived_exertion"
 
 # Combine power zones and zone times
-curl -H "Authorization: ApiKey YOUR_ATHLETE_ID:YOUR_API_KEY" \
+curl -H "Authorization: ApiKey API_KEY:YOUR_API_KEY" \
   "https://intervals.icu/api/v1/athlete/YOUR_ATHLETE_ID/activities?oldest=2024-01-01&fields=id,name,distance,moving_time,icu_zone_times,icu_weighted_avg_watts"
 
 # HR zones + intensity data
-curl -H "Authorization: ApiKey YOUR_ATHLETE_ID:YOUR_API_KEY" \
+curl -H "Authorization: ApiKey API_KEY:YOUR_API_KEY" \
   "https://intervals.icu/api/v1/athlete/YOUR_ATHLETE_ID/activities?oldest=2024-01-01&fields=id,name,type,average_heartrate,max_heartrate,icu_hr_zone_times,trimp"
 ```
 
@@ -97,11 +100,11 @@ curl -H "Authorization: ApiKey YOUR_ATHLETE_ID:YOUR_API_KEY" \
 
 ```bash
 # Get activity by ID with all data
-curl -H "Authorization: ApiKey YOUR_ATHLETE_ID:YOUR_API_KEY" \
+curl -H "Authorization: ApiKey API_KEY:YOUR_API_KEY" \
   "https://intervals.icu/api/v1/activity/ACTIVITY_ID"
 
 # Get activity with intervals
-curl -H "Authorization: ApiKey YOUR_ATHLETE_ID:YOUR_API_KEY" \
+curl -H "Authorization: ApiKey API_KEY:YOUR_API_KEY" \
   "https://intervals.icu/api/v1/activity/ACTIVITY_ID?intervals=true"
 ```
 
@@ -109,16 +112,16 @@ curl -H "Authorization: ApiKey YOUR_ATHLETE_ID:YOUR_API_KEY" \
 
 ```bash
 # Get activity streams as JSON
-curl -H "Authorization: ApiKey YOUR_ATHLETE_ID:YOUR_API_KEY" \
+curl -H "Authorization: ApiKey API_KEY:YOUR_API_KEY" \
   "https://intervals.icu/api/v1/activity/ACTIVITY_ID/streams.json"
 
 # Get activity streams as CSV (includes time, power, heart_rate, cadence, etc.)
-curl -H "Authorization: ApiKey YOUR_ATHLETE_ID:YOUR_API_KEY" \
+curl -H "Authorization: ApiKey API_KEY:YOUR_API_KEY" \
   "https://intervals.icu/api/v1/activity/ACTIVITY_ID/streams.csv" \
   --output activity_streams.csv
 
 # Get specific stream types
-curl -H "Authorization: ApiKey YOUR_ATHLETE_ID:YOUR_API_KEY" \
+curl -H "Authorization: ApiKey API_KEY:YOUR_API_KEY" \
   "https://intervals.icu/api/v1/activity/ACTIVITY_ID/streams.json?types=watts,heart_rate,cadence"
 ```
 
@@ -132,19 +135,19 @@ Retrieve planned workouts, notes, and training targets from your calendar.
 
 ```bash
 # Get all events in date range
-curl -H "Authorization: ApiKey YOUR_ATHLETE_ID:YOUR_API_KEY" \
+curl -H "Authorization: ApiKey API_KEY:YOUR_API_KEY" \
   "https://intervals.icu/api/v1/athlete/YOUR_ATHLETE_ID/events?oldest=2024-02-01&newest=2024-02-29"
 
 # Get with specific fields
-curl -H "Authorization: ApiKey YOUR_ATHLETE_ID:YOUR_API_KEY" \
+curl -H "Authorization: ApiKey API_KEY:YOUR_API_KEY" \
   "https://intervals.icu/api/v1/athlete/YOUR_ATHLETE_ID/events?oldest=2024-02-01&newest=2024-02-29&fields=id,name,category,start_date_local,description"
 
 # Filter by category (WORKOUT, NOTE, TARGET, FITNESS_DAYS, etc.)
-curl -H "Authorization: ApiKey YOUR_ATHLETE_ID:YOUR_API_KEY" \
+curl -H "Authorization: ApiKey API_KEY:YOUR_API_KEY" \
   "https://intervals.icu/api/v1/athlete/YOUR_ATHLETE_ID/events?oldest=2024-02-01&category=WORKOUT"
 
 # Get workout targets for date range
-curl -H "Authorization: ApiKey YOUR_ATHLETE_ID:YOUR_API_KEY" \
+curl -H "Authorization: ApiKey API_KEY:YOUR_API_KEY" \
   "https://intervals.icu/api/v1/athlete/YOUR_ATHLETE_ID/events?oldest=2024-02-01&category=TARGET"
 ```
 
@@ -152,7 +155,7 @@ curl -H "Authorization: ApiKey YOUR_ATHLETE_ID:YOUR_API_KEY" \
 
 ```bash
 # Get specific planned workout
-curl -H "Authorization: ApiKey YOUR_ATHLETE_ID:YOUR_API_KEY" \
+curl -H "Authorization: ApiKey API_KEY:YOUR_API_KEY" \
   "https://intervals.icu/api/v1/athlete/YOUR_ATHLETE_ID/events/EVENT_ID"
 ```
 
@@ -162,27 +165,27 @@ Export planned workouts in various formats for your training device.
 
 ```bash
 # Download as .zwo (Zwift format)
-curl -H "Authorization: ApiKey YOUR_ATHLETE_ID:YOUR_API_KEY" \
+curl -H "Authorization: ApiKey API_KEY:YOUR_API_KEY" \
   "https://intervals.icu/api/v1/athlete/YOUR_ATHLETE_ID/events/EVENT_ID/download.zwo" \
   --output workout.zwo
 
 # Download as .mrc (TrainerRoad format)
-curl -H "Authorization: ApiKey YOUR_ATHLETE_ID:YOUR_API_KEY" \
+curl -H "Authorization: ApiKey API_KEY:YOUR_API_KEY" \
   "https://intervals.icu/api/v1/athlete/YOUR_ATHLETE_ID/events/EVENT_ID/download.mrc" \
   --output workout.mrc
 
 # Download as .erg (Wahoo format)
-curl -H "Authorization: ApiKey YOUR_ATHLETE_ID:YOUR_API_KEY" \
+curl -H "Authorization: ApiKey API_KEY:YOUR_API_KEY" \
   "https://intervals.icu/api/v1/athlete/YOUR_ATHLETE_ID/events/EVENT_ID/download.erg" \
   --output workout.erg
 
 # Download as .fit (Garmin format)
-curl -H "Authorization: ApiKey YOUR_ATHLETE_ID:YOUR_API_KEY" \
+curl -H "Authorization: ApiKey API_KEY:YOUR_API_KEY" \
   "https://intervals.icu/api/v1/athlete/YOUR_ATHLETE_ID/events/EVENT_ID/download.fit" \
   --output workout.fit
 
 # Download multiple workouts as zip
-curl -H "Authorization: ApiKey YOUR_ATHLETE_ID:YOUR_API_KEY" \
+curl -H "Authorization: ApiKey API_KEY:YOUR_API_KEY" \
   "https://intervals.icu/api/v1/athlete/YOUR_ATHLETE_ID/workouts.zip?oldest=2024-02-01&newest=2024-02-29&ext=zwo" \
   --output workouts.zip
 ```
@@ -198,7 +201,7 @@ Add a manually-logged activity to your training history.
 ```bash
 # Basic manual activity
 curl -X POST \
-  -H "Authorization: ApiKey YOUR_ATHLETE_ID:YOUR_API_KEY" \
+  -H "Authorization: ApiKey API_KEY:YOUR_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
     "name": "Morning Run",
@@ -212,7 +215,7 @@ curl -X POST \
 
 # With power (cycling activity)
 curl -X POST \
-  -H "Authorization: ApiKey YOUR_ATHLETE_ID:YOUR_API_KEY" \
+  -H "Authorization: ApiKey API_KEY:YOUR_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
     "name": "Indoor Zwift",
@@ -228,7 +231,7 @@ curl -X POST \
 
 # With external ID (for syncing with external systems)
 curl -X POST \
-  -H "Authorization: ApiKey YOUR_ATHLETE_ID:YOUR_API_KEY" \
+  -H "Authorization: ApiKey API_KEY:YOUR_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
     "name": "Strava Activity",
@@ -246,7 +249,7 @@ curl -X POST \
 ```bash
 # Bulk create activities
 curl -X POST \
-  -H "Authorization: ApiKey YOUR_ATHLETE_ID:YOUR_API_KEY" \
+  -H "Authorization: ApiKey API_KEY:YOUR_API_KEY" \
   -H "Content-Type: application/json" \
   -d '[
     {
@@ -274,7 +277,7 @@ Add a scheduled workout to your calendar for future training.
 ```bash
 # Basic planned workout
 curl -X POST \
-  -H "Authorization: ApiKey YOUR_ATHLETE_ID:YOUR_API_KEY" \
+  -H "Authorization: ApiKey API_KEY:YOUR_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
     "name": "Vo2Max Intervals",
@@ -286,7 +289,7 @@ curl -X POST \
 
 # Planned workout with Intervals.icu format description
 curl -X POST \
-  -H "Authorization: ApiKey YOUR_ATHLETE_ID:YOUR_API_KEY" \
+  -H "Authorization: ApiKey API_KEY:YOUR_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
     "name": "Sweet Spot Build",
@@ -298,7 +301,7 @@ curl -X POST \
 
 # Create workout from .zwo file contents
 curl -X POST \
-  -H "Authorization: ApiKey YOUR_ATHLETE_ID:YOUR_API_KEY" \
+  -H "Authorization: ApiKey API_KEY:YOUR_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
     "name": "Zwift Structured Workout",
@@ -314,7 +317,7 @@ curl -X POST \
 ```bash
 # Bulk create planned workouts
 curl -X POST \
-  -H "Authorization: ApiKey YOUR_ATHLETE_ID:YOUR_API_KEY" \
+  -H "Authorization: ApiKey API_KEY:YOUR_API_KEY" \
   -H "Content-Type: application/json" \
   -d '[
     {
@@ -346,7 +349,7 @@ Set a specific training target for a date.
 ```bash
 # Create power target
 curl -X POST \
-  -H "Authorization: ApiKey YOUR_ATHLETE_ID:YOUR_API_KEY" \
+  -H "Authorization: ApiKey API_KEY:YOUR_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
     "name": "FTP Test Target",
@@ -358,7 +361,7 @@ curl -X POST \
 
 # Create duration target
 curl -X POST \
-  -H "Authorization: ApiKey YOUR_ATHLETE_ID:YOUR_API_KEY" \
+  -H "Authorization: ApiKey API_KEY:YOUR_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
     "name": "Daily Volume Target",
@@ -380,7 +383,7 @@ Modify an existing completed activity.
 ```bash
 # Update activity notes and tags
 curl -X PUT \
-  -H "Authorization: ApiKey YOUR_ATHLETE_ID:YOUR_API_KEY" \
+  -H "Authorization: ApiKey API_KEY:YOUR_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
     "name": "Recovery Ride - Updated",
@@ -391,7 +394,7 @@ curl -X PUT \
 
 # Update activity perceived exertion and feel
 curl -X PUT \
-  -H "Authorization: ApiKey YOUR_ATHLETE_ID:YOUR_API_KEY" \
+  -H "Authorization: ApiKey API_KEY:YOUR_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
     "perceived_exertion": 7,
@@ -408,7 +411,7 @@ Modify a scheduled event on your calendar.
 ```bash
 # Update workout details
 curl -X PUT \
-  -H "Authorization: ApiKey YOUR_ATHLETE_ID:YOUR_API_KEY" \
+  -H "Authorization: ApiKey API_KEY:YOUR_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
     "name": "Modified VO2Max Session",
@@ -418,7 +421,7 @@ curl -X PUT \
 
 # Hide event from athlete view
 curl -X PUT \
-  -H "Authorization: ApiKey YOUR_ATHLETE_ID:YOUR_API_KEY" \
+  -H "Authorization: ApiKey API_KEY:YOUR_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
     "hide_from_athlete": true
@@ -427,7 +430,7 @@ curl -X PUT \
 
 # Prevent athlete from editing event
 curl -X PUT \
-  -H "Authorization: ApiKey YOUR_ATHLETE_ID:YOUR_API_KEY" \
+  -H "Authorization: ApiKey API_KEY:YOUR_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
     "athlete_cannot_edit": true
@@ -440,7 +443,7 @@ curl -X PUT \
 ```bash
 # Hide all workouts for a week
 curl -X PUT \
-  -H "Authorization: ApiKey YOUR_ATHLETE_ID:YOUR_API_KEY" \
+  -H "Authorization: ApiKey API_KEY:YOUR_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
     "hide_from_athlete": true
@@ -458,16 +461,16 @@ Track sleep, fatigue, resting HR, and other wellness metrics.
 
 ```bash
 # Get wellness data for date range
-curl -H "Authorization: ApiKey YOUR_ATHLETE_ID:YOUR_API_KEY" \
+curl -H "Authorization: ApiKey API_KEY:YOUR_API_KEY" \
   "https://intervals.icu/api/v1/athlete/YOUR_ATHLETE_ID/wellness?oldest=2024-01-01&newest=2024-01-31"
 
 # Get wellness data as CSV
-curl -H "Authorization: ApiKey YOUR_ATHLETE_ID:YOUR_API_KEY" \
+curl -H "Authorization: ApiKey API_KEY:YOUR_API_KEY" \
   "https://intervals.icu/api/v1/athlete/YOUR_ATHLETE_ID/wellness.csv?oldest=2024-01-01&newest=2024-01-31" \
   --output wellness.csv
 
 # Get specific wellness fields
-curl -H "Authorization: ApiKey YOUR_ATHLETE_ID:YOUR_API_KEY" \
+curl -H "Authorization: ApiKey API_KEY:YOUR_API_KEY" \
   "https://intervals.icu/api/v1/athlete/YOUR_ATHLETE_ID/wellness?oldest=2024-01-01&fields=id,sleep_secs,soreness,fatigue,resting_hr,notes"
 ```
 
@@ -478,7 +481,7 @@ Log wellness data for a specific date.
 ```bash
 # Add sleep, HRV, and fatigue
 curl -X PUT \
-  -H "Authorization: ApiKey YOUR_ATHLETE_ID:YOUR_API_KEY" \
+  -H "Authorization: ApiKey API_KEY:YOUR_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
     "id": "2024-01-15",
@@ -491,7 +494,7 @@ curl -X PUT \
 
 # Add notes
 curl -X PUT \
-  -H "Authorization: ApiKey YOUR_ATHLETE_ID:YOUR_API_KEY" \
+  -H "Authorization: ApiKey API_KEY:YOUR_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
     "id": "2024-01-15",
@@ -505,7 +508,7 @@ curl -X PUT \
 ```bash
 # Update multiple wellness days at once
 curl -X PUT \
-  -H "Authorization: ApiKey YOUR_ATHLETE_ID:YOUR_API_KEY" \
+  -H "Authorization: ApiKey API_KEY:YOUR_API_KEY" \
   -H "Content-Type: application/json" \
   -d '[
     {
@@ -537,15 +540,15 @@ Retrieve power zones, HR zones, and FTP settings for a sport.
 
 ```bash
 # Get Ride settings
-curl -H "Authorization: ApiKey YOUR_ATHLETE_ID:YOUR_API_KEY" \
+curl -H "Authorization: ApiKey API_KEY:YOUR_API_KEY" \
   "https://intervals.icu/api/v1/athlete/YOUR_ATHLETE_ID/sport-settings/Ride"
 
 # Get Run settings
-curl -H "Authorization: ApiKey YOUR_ATHLETE_ID:YOUR_API_KEY" \
+curl -H "Authorization: ApiKey API_KEY:YOUR_API_KEY" \
   "https://intervals.icu/api/v1/athlete/YOUR_ATHLETE_ID/sport-settings/Run"
 
 # List all sport settings
-curl -H "Authorization: ApiKey YOUR_ATHLETE_ID:YOUR_API_KEY" \
+curl -H "Authorization: ApiKey API_KEY:YOUR_API_KEY" \
   "https://intervals.icu/api/v1/athlete/YOUR_ATHLETE_ID/sport-settings"
 ```
 
@@ -556,7 +559,7 @@ Modify power zones, FTP, or HR zones.
 ```bash
 # Update FTP and power zones
 curl -X PUT \
-  -H "Authorization: ApiKey YOUR_ATHLETE_ID:YOUR_API_KEY" \
+  -H "Authorization: ApiKey API_KEY:YOUR_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
     "ftp": 310,
@@ -566,7 +569,7 @@ curl -X PUT \
 
 # Update LTHR and HR zones
 curl -X PUT \
-  -H "Authorization: ApiKey YOUR_ATHLETE_ID:YOUR_API_KEY" \
+  -H "Authorization: ApiKey API_KEY:YOUR_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
     "lthr": 165,
@@ -686,21 +689,27 @@ curl -s -H "Authorization: ApiKey $ATHLETE_ID:$API_KEY" \
 ## Important Notes
 
 ### Rate Limiting
+
 Be respectful with API calls. Don't hammer the API with rapid successive requests.
 
 ### Field Selection
+
 Use the `fields` parameter to request only the data you need. This improves performance and reduces payload size.
 
 ### Date Formats
+
 Always use ISO-8601 format: `YYYY-MM-DD` or `YYYY-MM-DDTHH:MM:SS`
 
 ### Upsert Parameter
+
 When creating events, use `upsertOnUid=true` to update existing events with matching UIDs instead of creating duplicates.
 
 ### External IDs
+
 Use `external_id` when syncing data from other systems to avoid duplicates on re-sync.
 
 ### Forum Discussion
+
 For more detailed API information, see: [API Access Forum Post](https://forum.intervals.icu/t/api-access-to-intervals-icu/609)
 
 ---
