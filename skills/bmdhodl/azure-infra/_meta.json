@@ -1,0 +1,11 @@
+{
+  "owner": "bmdhodl",
+  "slug": "azure-infra",
+  "displayName": "Azure Infra",
+  "latest": {
+    "version": "1.0.0",
+    "publishedAt": 1769528070364,
+    "commit": null
+  },
+  "history": []
+}
