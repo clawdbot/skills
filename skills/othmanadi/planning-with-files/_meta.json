@@ -3,9 +3,15 @@
   "slug": "planning-with-files",
   "displayName": "Planning with files",
   "latest": {
-    "version": "2.11.0",
-    "publishedAt": 1769389713406,
-    "commit": "https://github.com/clawdbot/skills/commit/d9ded06349cc9a20dcd2055fb3585c7ed86e4885"
+    "version": "1.0.0",
+    "publishedAt": 1769547993264,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "2.11.0",
+      "publishedAt": 1769389713406,
+      "commit": "https://github.com/clawdbot/skills/commit/d9ded06349cc9a20dcd2055fb3585c7ed86e4885"
+    }
+  ]
 }
