@@ -1,6 +1,6 @@
 ---
 name: standard-agentic-commerce-engine
-version: 1.2.3
+version: 1.2.4
 description: A production-ready universal engine for Agentic Commerce. This tool enables autonomous agents to interact with any compatible headless e-commerce backend through a standardized protocol. It provides out-of-the-box support for discovery, cart operations, and secure user management.
 tags: [ecommerce, shopping-agent, commerce-engine, standard-protocol, headless-commerce, agentic-web]
 ---

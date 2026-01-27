@@ -2,7 +2,7 @@
 
 A production-ready universal engine for Agentic Commerce. This tool enables autonomous agents to interact with any compatible headless e-commerce backend through a standardized protocol. It provides out-of-the-box support for discovery, cart operations, and secure user management.
 
-GitHub Repository: https://github.com/NowLoadY/agent-commerce-engine
+Clawdhub: https://clawdhub.com/NowLoadY/agent-commerce-engine
 
 ## Why?
 
@@ -32,8 +32,8 @@ The **Standard Agentic Commerce Engine** eliminates the friction of building cus
 ## Structure
 
 - `SKILL.md`: Metadata and instructions for Agent discovery.
+- `SERVER_SPEC.md`: Standard API response and behavior specification for backends.
 - `scripts/commerce.py`: The universal CLI entry point.
-- `scripts/lib/commerce_client.py`: The core, brand-agnostic commerce engine.
 
 ## License
 
@@ -45,7 +45,7 @@ MIT License - Supporting the open acceleration of Agentic Commerce standards.
 
 面向 Agentic Commerce 的通用核心引擎。本工具提供了一套标准、高精度的协议，用于将自主 Agent 与任何无头 (Headless) 电商后端完美连接。
 
-GitHub 仓库: https://github.com/NowLoadY/agent-commerce-engine
+Clawdhub链接: https://clawdhub.com/NowLoadY/agent-commerce-engine
 
 ## 为什么有这个引擎？
 

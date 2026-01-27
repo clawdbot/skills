@@ -1,11 +1,17 @@
 {
   "owner": "nowloady",
   "slug": "agent-commerce-engine",
-  "displayName": "Standard Agentic Commerce Engine",
+  "displayName": "Agent Commerce Engine",
   "latest": {
-    "version": "1.2.3",
-    "publishedAt": 1769437298996,
-    "commit": "https://github.com/clawdbot/skills/commit/aeaf0d032bb201c5c90a464420b235add064d645"
+    "version": "1.2.4",
+    "publishedAt": 1769498719171,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "1.2.3",
+      "publishedAt": 1769437298996,
+      "commit": "https://github.com/clawdbot/skills/commit/aeaf0d032bb201c5c90a464420b235add064d645"
+    }
+  ]
 }
