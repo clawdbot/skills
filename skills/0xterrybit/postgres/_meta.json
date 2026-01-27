@@ -1,0 +1,11 @@
+{
+  "owner": "0xterrybit",
+  "slug": "postgres",
+  "displayName": "PostgreSQL",
+  "latest": {
+    "version": "1.0.0",
+    "publishedAt": 1769537316851,
+    "commit": null
+  },
+  "history": []
+}
