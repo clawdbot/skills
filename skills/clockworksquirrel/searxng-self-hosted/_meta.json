@@ -1,0 +1,11 @@
+{
+  "owner": "clockworksquirrel",
+  "slug": "searxng-self-hosted",
+  "displayName": "SearXNG Self-Hosted Search",
+  "latest": {
+    "version": "1.0.0",
+    "publishedAt": 1769532185737,
+    "commit": null
+  },
+  "history": []
+}
