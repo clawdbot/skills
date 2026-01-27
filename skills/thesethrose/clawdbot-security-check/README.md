@@ -2,7 +2,7 @@
 
 🔒 **Self-security audit framework for Clawdbot**
 
-Inspired by the security hardening framework from [ᴅᴀɴɪᴇʟ ᴍɪᴇssʟᴇʀ](https://x.com/DanielMiessler) ([original post](https://x.com/DanielMiessler/status/2015865548714975475)).
+Inspired by the security hardening framework from [ᴅᴀɴɪᴇʟ ᴍɪᴇssʟᴇʀ](https://x.com/DanielMiessler) and integrated with [official ClawdBot security documentation](https://docs.clawd.bot/gateway/security).
 
 This skill teaches Clawdbot to audit its own security posture using first-principles reasoning. Not a hard-coded script—it's a **knowledge framework** that Clawdbot applies dynamically to detect vulnerabilities, understand their impact, and recommend specific remediations.
 
@@ -13,25 +13,30 @@ This skill teaches Clawdbot to audit its own security posture using first-princi
 - 📚 **Extensible** - Add new checks by updating the skill
 - 🔒 **100% Read-only** - Only audits; never modifies configuration
 
-## The 10 Security Domains
+## The 12 Security Domains
 
 | # | Domain | Severity | Key Question |
 |---|--------|----------|--------------|
 | 1 | Gateway Exposure | 🔴 Critical | Is the gateway bound to 0.0.0.0 without auth? |
 | 2 | DM Policy | 🟠 High | Are DMs restricted to an allowlist? |
-| 3 | Sandbox Isolation | 🟠 High | Is Docker sandbox enabled with network isolation? |
+| 3 | Group Access Control | 🟠 High | Are group policies set to allowlist? |
 | 4 | Credentials Security | 🔴 Critical | Are secrets in plaintext with loose permissions? |
-| 5 | Prompt Injection | 🟡 Medium | Is untrusted content wrapped to prevent injection? |
-| 6 | Dangerous Commands | 🟠 High | Are destructive commands blocked? |
-| 7 | Network Isolation | 🟡 Medium | Is Docker network restricted? |
-| 8 | Elevated Tool Access | 🟡 Medium | Are tools restricted to minimum needed? |
-| 9 | Audit Logging | 🟡 Medium | Is session activity logged for investigation? |
-| 10| Pairing Codes | 🟡 Medium | Are codes cryptographic + rate-limited? |
+| 5 | Browser Control Exposure | 🟠 High | Is remote browser control secured? |
+| 6 | Gateway Bind & Network | 🟠 High | Is network exposure intentional and controlled? |
+| 7 | Tool Access & Elevated | 🟡 Medium | Are tools restricted to minimum needed? |
+| 8 | File Permissions & Disk | 🟡 Medium | Are file permissions properly set? |
+| 9 | Plugin Trust & Model | 🟡 Medium | Are plugins allowlisted and models current? |
+| 10| Logging & Redaction | 🟡 Medium | Is sensitive data redacted in logs? |
+| 11| Prompt Injection | 🟡 Medium | Is untrusted content wrapped? |
+| 12| Dangerous Commands | 🟡 Medium | Are destructive commands blocked? |
 
 ## Installation
 
 ```bash
-# Clone for Clawdbot skill integration
+# Via ClawdHub
+clawdhub install clawdbot-security-check
+
+# Or clone for manual installation
 git clone https://github.com/TheSethRose/Clawdbot-Security-Check.git
 cp -r Clawdbot-Security-Check ~/.clawdbot/skills/
 ```
@@ -43,45 +48,47 @@ cp -r Clawdbot-Security-Check ~/.clawdbot/skills/
 @clawdbot audit my security
 @clawdbot run security check
 @clawdbot what vulnerabilities do I have?
+@clawdbot security audit --deep
+@clawdbot security audit --fix
 ```
 
-### Direct Execution
-```bash
-node security-check.js           # Human-readable report
-node security-check.js --json    # JSON for programmatic use
-```
+## Security Principles
 
-## How It Works
+Running an AI agent with shell access requires caution. Focus on:
 
-Instead of a static script, this skill provides:
+1. **Who can talk to the bot** — DM policies, group allowlists, channel restrictions
+2. **Where the bot is allowed to act** — Network exposure, gateway binding, proxy configs
+3. **What the bot can touch** — Tool access, file permissions, credential storage
 
-1. **Detection knowledge** - What config keys reveal each vulnerability
-2. **Baseline definitions** - What "secure" looks like for each domain
-3. **Remediation templates** - Specific fixes for each issue type
-4. **Audit methodology** - Step-by-step execution framework
+## Audit Functions
 
-### Example: Clawdbot's Thought Process
+The `--fix` flag applies these guardrails:
+- Changes `groupPolicy` from `open` to `allowlist` for common channels
+- Resets `logging.redactSensitive` from `off` to `tools`
+- Tightens permissions: `.clawdbot` to `700`, configs to `600`
+- Secures state files including credentials and auth profiles
 
-When auditing, Clawdbot now thinks:
+## High-Level Checklist
 
-```
-For Gateway Exposure:
-1. Look at ~/.clawdbot/config.json for "bind_address"
-2. If "0.0.0.0" AND no "auth_token" → VULNERABLE
-3. Report: "Gateway exposed on 0.0.0.0:18789 without authentication"
-4. Recommend: "Set gateway.auth_token in environment variables"
-```
+Treat findings in this priority order:
+
+1. 🔴 Lock down DMs and groups if tools are enabled on open settings
+2. 🔴 Fix public network exposure immediately
+3. 🟠 Secure browser control with tokens and HTTPS
+4. 🟠 Correct file permissions for credentials and config
+5. 🟡 Only load trusted plugins
+6. 🟡 Use modern models for bots with tool access
 
 ## Extending the Framework
 
 Add new checks by contributing to SKILL.md:
 
 ```markdown
-## 11. New Vulnerability 🟡 Medium
+## 13. New Vulnerability 🟡 Medium
 
 **What to check:** What config reveals this?
 
-**How to detect:**
+**Detection:**
 ```bash
 command-to-check-config
 ```
@@ -90,9 +97,7 @@ command-to-check-config
 
 **Remediation:**
 ```json
-{
-  "fix": "here"
-}
+{ "fix": "here" }
 ```
 ```
 
@@ -100,14 +105,13 @@ command-to-check-config
 
 ```
 Clawdbot-Security-Check/
-├── SKILL.md          # Knowledge framework (the skill)
-├── security-check.js # Reference implementation
-├── README.md         # This file
-├── package.json
+├── SKILL.md      # Knowledge framework (the skill - source of truth)
+├── skill.json    # Clawdbot metadata
+├── README.md     # This file
 └── .gitignore
 ```
 
-**SKILL.md** is the source of truth—it teaches Clawdbot. **security-check.js** is a standalone reference implementation for CLI use.
+**SKILL.md** is the source of truth—it teaches Clawdbot everything it needs to know.
 
 ## Why This Approach?
 
@@ -132,7 +136,7 @@ Timestamp: 2026-01-26T15:30:00.000Z
 │ 🔴 Critical:  1
 │ 🟠 High:      2
 │ 🟡 Medium:    1
-│ ✅ Passed:    6
+│ ✅ Passed:    8
 └────────────────────────────────────────────────────────
 
 ┌─ FINDINGS ──────────────────────────────────────────────
@@ -153,8 +157,7 @@ No changes were made to your configuration.
 
 1. Fork the repo
 2. Add new security knowledge to SKILL.md
-3. Test with `node security-check.js`
-4. Submit PR
+3. Submit PR
 
 ## License
 
