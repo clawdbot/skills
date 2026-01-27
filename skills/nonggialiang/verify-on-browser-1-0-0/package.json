@@ -1,0 +1,15 @@
+{
+  "name": "browser-cdp-mcp",
+  "version": "1.0.0",
+  "description": "MCP server for browser control via Chrome DevTools Protocol",
+  "type": "module",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.0",
+    "playwright": "^1.48.0",
+    "zod": "^3.23.0"
+  }
+}
