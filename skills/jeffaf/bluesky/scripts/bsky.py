@@ -4,12 +4,13 @@
 import argparse
 import json
 import os
+import re
 import sys
 from datetime import datetime
 from pathlib import Path
 
 try:
-    from atproto import Client
+    from atproto import Client, client_utils
 except ImportError:
     print("Error: atproto not installed. Run: pip install atproto", file=sys.stderr)
     sys.exit(1)
@@ -86,14 +87,59 @@ def cmd_timeline(args):
 
 def cmd_post(args):
     client = get_client()
-    response = client.send_post(text=args.text)
+    text = args.text
+    
+    # Auto-detect URLs and create proper facets using TextBuilder
+    url_pattern = r'(https?://[^\s]+)'
+    urls = re.findall(url_pattern, text)
+    
+    if urls:
+        # Use TextBuilder for proper link facets
+        builder = client_utils.TextBuilder()
+        last_end = 0
+        for match in re.finditer(url_pattern, text):
+            # Add text before the URL
+            if match.start() > last_end:
+                builder.text(text[last_end:match.start()])
+            # Add the URL as a link
+            url = match.group(1)
+            builder.link(url, url)
+            last_end = match.end()
+        # Add any remaining text
+        if last_end < len(text):
+            builder.text(text[last_end:])
+        response = client.send_post(builder)
+    else:
+        response = client.send_post(text=text)
+    
     uri = response.uri
     post_id = uri.split('/')[-1]
     print(f"Posted: https://bsky.app/profile/{client.me.handle}/post/{post_id}")
 
+def cmd_delete(args):
+    client = get_client()
+    # Extract post ID from URL or use raw ID
+    post_id = args.post_id
+    if "bsky.app" in post_id:
+        post_id = post_id.rstrip('/').split('/')[-1]
+    
+    # Construct the URI
+    uri = f"at://{client.me.did}/app.bsky.feed.post/{post_id}"
+    
+    try:
+        client.delete_post(uri)
+        print(f"Deleted post: {post_id}")
+    except Exception as e:
+        print(f"Delete failed: {e}", file=sys.stderr)
+        sys.exit(1)
+
 def cmd_profile(args):
     client = get_client()
     handle = args.handle.lstrip('@') if args.handle else client.me.handle
+    
+    # Auto-append .bsky.social if no domain specified
+    if handle and '.' not in handle:
+        handle = f"{handle}.bsky.social"
     
     profile = client.get_profile(handle)
     print(f"@{profile.handle}")
@@ -175,6 +221,10 @@ def main():
     post_p = subparsers.add_parser("post", aliases=["p"], help="Create a post")
     post_p.add_argument("text", help="Post text")
     
+    # delete
+    del_p = subparsers.add_parser("delete", aliases=["del", "rm"], help="Delete a post")
+    del_p.add_argument("post_id", help="Post ID or URL")
+    
     # profile
     profile_p = subparsers.add_parser("profile", help="Show profile")
     profile_p.add_argument("handle", nargs="?", help="Handle to look up (default: self)")
@@ -198,6 +248,9 @@ def main():
         "home": cmd_timeline,
         "post": cmd_post,
         "p": cmd_post,
+        "delete": cmd_delete,
+        "del": cmd_delete,
+        "rm": cmd_delete,
         "profile": cmd_profile,
         "search": cmd_search,
         "s": cmd_search,

@@ -1,0 +1,4 @@
+[console_scripts]
+atp=atproto_cli:atproto_cli
+atproto=atproto_cli:atproto_cli
+

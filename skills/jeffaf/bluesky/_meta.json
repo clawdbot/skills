@@ -3,9 +3,15 @@
   "slug": "bluesky",
   "displayName": "Bluesky",
   "latest": {
-    "version": "1.0.1",
-    "publishedAt": 1769311022732,
-    "commit": "https://github.com/clawdbot/skills/commit/eb1b40f42db33380b8f1380dcb4b0bbd81d09a9c"
+    "version": "1.0.4",
+    "publishedAt": 1769316626844,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "1.0.1",
+      "publishedAt": 1769311022732,
+      "commit": "https://github.com/clawdbot/skills/commit/eb1b40f42db33380b8f1380dcb4b0bbd81d09a9c"
+    }
+  ]
 }

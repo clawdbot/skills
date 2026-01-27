@@ -42,6 +42,10 @@ bsky tl -n 20          # Show 20 posts
 bsky post "Hello Bluesky!"
 bsky p "Short post"    # Alias
 
+# Delete
+bsky delete <post_id>  # Delete by ID
+bsky rm <url>          # Delete by URL
+
 # Search
 bsky search "query"
 bsky search "offsec" -n 20

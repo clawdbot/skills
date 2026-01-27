@@ -38,6 +38,10 @@ bsky tl                    # Alias
 bsky post "Hello world!"   # Create a post
 bsky p "Short post"        # Alias
 
+# Delete
+bsky delete <post_id>      # Delete a post by ID or URL
+bsky rm <url>              # Alias
+
 # Profiles
 bsky profile               # Your profile
 bsky profile @someone.bsky.social
