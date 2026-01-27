@@ -1,0 +1,147 @@
+{
+  "profile": {
+    "personal": {
+      "full_name": "Your Full Name",
+      "email": "your.email@example.com",
+      "phone": "+1-234-567-8900",
+      "location": {
+        "city": "San Francisco",
+        "state": "CA",
+        "country": "USA",
+        "zip_code": "94102"
+      },
+      "linkedin_url": "https://linkedin.com/in/yourprofile",
+      "portfolio_url": "https://yourportfolio.com",
+      "github_url": "https://github.com/yourusername"
+    },
+    
+    "work_authorization": {
+      "authorized_to_work_us": true,
+      "requires_visa_sponsorship": false,
+      "has_security_clearance": false,
+      "willing_to_relocate": false,
+      "open_to_remote": true
+    },
+    
+    "experience": {
+      "years_total": 5,
+      "current_title": "Senior Software Engineer",
+      "industry": "Technology",
+      "specializations": [
+        "Backend Development",
+        "API Design",
+        "Cloud Architecture"
+      ]
+    },
+    
+    "education": {
+      "highest_degree": "Bachelor's",
+      "field_of_study": "Computer Science",
+      "university": "University Name",
+      "graduation_year": 2018
+    },
+    
+    "skills": {
+      "programming_languages": [
+        "Python",
+        "JavaScript",
+        "Go",
+        "TypeScript"
+      ],
+      "frameworks": [
+        "Django",
+        "React",
+        "Node.js",
+        "FastAPI"
+      ],
+      "tools": [
+        "Docker",
+        "Kubernetes",
+        "AWS",
+        "Git"
+      ],
+      "soft_skills": [
+        "Team Leadership",
+        "Communication",
+        "Problem Solving",
+        "Agile/Scrum"
+      ]
+    },
+    
+    "preferences": {
+      "job_types": ["full-time", "contract"],
+      "work_arrangement": ["remote", "hybrid"],
+      "salary_expectations": {
+        "minimum": 120000,
+        "currency": "USD",
+        "period": "annual"
+      },
+      "preferred_company_sizes": ["startup", "mid-size", "enterprise"],
+      "industries_of_interest": [
+        "Technology",
+        "Fintech",
+        "Healthcare Tech"
+      ],
+      "deal_breakers": [
+        "No remote option",
+        "Less than 2 weeks PTO",
+        "On-call 24/7"
+      ]
+    },
+    
+    "documents": {
+      "resume_path": "~/Documents/resume.pdf",
+      "cover_letter_template_path": "~/Documents/cover_letter_template.txt",
+      "portfolio_path": null,
+      "references_document": null
+    },
+    
+    "application_settings": {
+      "platforms": ["linkedin", "indeed", "wellfound", "glassdoor"],
+      "max_applications_per_day": 10,
+      "min_match_score": 0.75,
+      "auto_apply_threshold": 0.9,
+      "require_manual_confirmation": true,
+      "save_application_logs": true,
+      "notifications": {
+        "email_on_application": true,
+        "email_on_response": true,
+        "daily_summary": true
+      }
+    },
+    
+    "screening_answers": {
+      "why_leave_current_job": "Seeking new challenges and growth opportunities",
+      "expected_start_date": "2 weeks notice",
+      "salary_expectations": "Market rate based on experience",
+      "availability_for_interview": "Flexible, evenings and weekends preferred",
+      "what_interests_you": "I'm drawn to companies with strong engineering culture and opportunities for technical growth"
+    }
+  },
+  
+  "search_criteria": {
+    "job_titles": [
+      "Software Engineer",
+      "Backend Engineer",
+      "Full Stack Engineer",
+      "Senior Developer"
+    ],
+    "keywords_required": ["python", "api"],
+    "keywords_preferred": ["aws", "kubernetes", "microservices"],
+    "keywords_excluded": ["java", "frontend-only"],
+    "locations": [
+      {
+        "city": "San Francisco",
+        "state": "CA",
+        "radius_miles": 25
+      },
+      {
+        "remote": true
+      }
+    ],
+    "experience_levels": ["mid-level", "senior"],
+    "company_blacklist": [
+      "companies-to-avoid"
+    ]
+  }
+}
