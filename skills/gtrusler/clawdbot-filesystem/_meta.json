@@ -1,0 +1,11 @@
+{
+  "owner": "gtrusler",
+  "slug": "clawdbot-filesystem",
+  "displayName": "Filesystem Management",
+  "latest": {
+    "version": "1.0.2",
+    "publishedAt": 1769481608074,
+    "commit": null
+  },
+  "history": []
+}
