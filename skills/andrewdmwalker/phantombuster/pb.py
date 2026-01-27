@@ -212,6 +212,34 @@ def cmd_get(args):
             print(json.dumps(arg, indent=2))
 
 
+def cmd_fetch_result(args):
+    """Fetch result data (CSV/JSON) from agent."""
+    result = api_request("GET", f"/agents/fetch?id={args.agent_id}")
+    
+    # Get the S3 folder from agent
+    org_folder = result.get('orgS3Folder')
+    s3_folder = result.get('s3Folder')
+    
+    if not org_folder or not s3_folder:
+        print("No result folder found. Agent may not have run yet.", file=sys.stderr)
+        sys.exit(1)
+    
+    # Construct S3 URL to result file
+    result_url = f"https://phantombuster.s3.amazonaws.com/{org_folder}/{s3_folder}/result.csv"
+    
+    # Download the file
+    try:
+        with urllib.request.urlopen(result_url, timeout=30) as response:
+            data = response.read().decode('utf-8')
+            print(data)
+    except urllib.error.HTTPError as e:
+        print(f"Error downloading result: {e.code} - {result_url}", file=sys.stderr)
+        sys.exit(1)
+    except Exception as e:
+        print(f"Error: {e}", file=sys.stderr)
+        sys.exit(1)
+
+
 def main():
     parser = argparse.ArgumentParser(
         description="PhantomBuster CLI for Clawdbot",
@@ -257,6 +285,10 @@ Examples:
     get_parser.add_argument("agent_id", help="Agent ID")
     get_parser.add_argument("--json", action="store_true", help="JSON output")
     
+    # Fetch Result
+    fetch_parser = subparsers.add_parser("fetch-result", help="Download result data (CSV)")
+    fetch_parser.add_argument("agent_id", help="Agent ID")
+    
     args = parser.parse_args()
     
     commands = {
@@ -266,6 +298,7 @@ Examples:
         "status": cmd_status,
         "abort": cmd_abort,
         "get": cmd_get,
+        "fetch-result": cmd_fetch_result,
     }
     
     commands[args.command](args)

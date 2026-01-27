@@ -3,9 +3,15 @@
   "slug": "phantombuster",
   "displayName": "PhantomBuster",
   "latest": {
-    "version": "1.0.0",
-    "publishedAt": 1769464670772,
-    "commit": "https://github.com/clawdbot/skills/commit/bf15c89ac527a867283dce2b0fb0453d99305c31"
+    "version": "1.2.0",
+    "publishedAt": 1769531526476,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "1.0.0",
+      "publishedAt": 1769464670772,
+      "commit": "https://github.com/clawdbot/skills/commit/bf15c89ac527a867283dce2b0fb0453d99305c31"
+    }
+  ]
 }

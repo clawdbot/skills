@@ -72,6 +72,17 @@ Full details about a specific agent.
 python3 pb.py get <agent-id>
 ```
 
+### Fetch Result Data
+
+Download the actual result data (CSV) from an agent's latest run.
+
+```bash
+python3 pb.py fetch-result <agent-id>
+python3 pb.py fetch-result <agent-id> > output.csv
+```
+
+This downloads the `result.csv` file from the agent's S3 storage, perfect for integrating PhantomBuster data into your workflows.
+
 ## Example Prompts
 
 - *"List my PhantomBuster agents"*
