@@ -1,7 +1,7 @@
 ---
 name: paypal
 description: PayPal payment integration. Send money, create invoices, and manage PayPal transactions.
-metadata: {"clawdbot":{"emoji":"🅿️","requires":{"bins":["curl","jq"],"env":["PAYPAL_CLIENT_ID","PAYPAL_SECRET"]},"primaryEnv":"PAYPAL_CLIENT_ID"}}
+metadata: {"clawdbot":{"emoji":"🅿️","always":true,"requires":{"bins":["curl","jq"]},"primaryEnv":"PAYPAL_CLIENT_ID"}}
 ---
 
 # PayPal 🅿️
