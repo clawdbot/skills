@@ -1,0 +1,12 @@
+{
+  "start_date": null,
+  "starting_balance_usd": 0,
+  "current_balance_usd": 0,
+  "total_trades": 0,
+  "winning_trades": 0,
+  "losing_trades": 0,
+  "win_rate": 0,
+  "total_pnl_usd": 0,
+  "best_trade": null,
+  "worst_trade": null
+}
