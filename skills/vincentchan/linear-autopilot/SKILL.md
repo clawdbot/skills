@@ -16,13 +16,15 @@ Before setup, be aware of free plan limits:
 | Service | Free Tier Limits | Recommendation |
 |---------|------------------|----------------|
 | **Linear** | 250 issues, unlimited members | Sufficient for most personal/small team use |
-| **Pipedream** | 100 invocations/day, 10 workflows | Good for light usage (~3 tasks/day) |
+| **Make.com** | 1,000 ops/month, 2 scenarios, 15-min interval | ✅ **Best free option** — generous limits |
+| **Pipedream** | ~100 credits (unclear reset), instant triggers | Good if you need real-time, burns credits fast |
 | **Zapier** | 100 tasks/month, 5 zaps, 15-min polling, **no webhooks** | ⚠️ Paid plan required for this workflow |
 
 **Important notes:**
-- **Pipedream** free tier resets daily and includes instant webhooks — best free option
-- **Zapier** free plan does NOT support webhooks (required for real-time Linear triggers). You need a paid Zapier plan (Starter+) for this workflow to work properly
-- For budget-conscious users: **use Pipedream**
+- **Make.com** offers 1,000 ops/month free — our recommendation for free tier users
+- **Pipedream** has instant webhooks but limited free credits that deplete quickly
+- **Zapier** free plan does NOT support webhooks. You need a paid Zapier plan (Starter+)
+- For budget-conscious users: **use Make.com**
 
 ## Setup
 
@@ -71,9 +73,21 @@ Update `~/.clawdbot/linear-config.json`:
 
 Choose your preferred automation platform:
 
-#### Option A: Pipedream (Recommended for free tier)
-- 100 invocations/day free
+#### Option A: Make.com (Recommended for free tier)
+- 1,000 operations/month free
+- 15-minute minimum interval on free tier
+- See `references/make-setup.md` for step-by-step guide
+
+Quick setup:
+1. Create scenario at make.com
+2. Add Linear "Watch Issues" trigger
+3. Add filter: state.name = "Todo"
+4. Add Discord webhook action
+5. Activate scenario
+
+#### Option B: Pipedream (If you need instant triggers)
 - Instant webhook triggers
+- Limited free credits (deplete fast)
 - See `references/pipedream-setup.md` for step-by-step guide
 
 Quick setup:
