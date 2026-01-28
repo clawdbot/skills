@@ -1,0 +1,10 @@
+{
+  "mcpServers": {
+    "gold-price": {
+      "command": "/Volumes/External/projects/mcp-services/gold-price/.venv/bin/python",
+      "args": [
+        "/Volumes/External/projects/mcp-services/gold-price/gold-price-mcp.py"
+      ]
+    }
+  }
+}
