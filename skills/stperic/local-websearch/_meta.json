@@ -1,0 +1,11 @@
+{
+  "owner": "stperic",
+  "slug": "local-websearch",
+  "displayName": "Local web search using SearXNG",
+  "latest": {
+    "version": "1.0.0",
+    "publishedAt": 1769622046273,
+    "commit": null
+  },
+  "history": []
+}
