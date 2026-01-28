@@ -1,0 +1,39 @@
+{
+  "version": "1.0.0",
+  "organization": "BuidlGuidl",
+  "date": "January 2026",
+  "abstract": "Comprehensive Ethereum development guide for AI agents. Covers smart contract development, DeFi protocol integration (Uniswap, Aave), security best practices, and the SpeedRun Ethereum curriculum. Emphasizes the critical concept that 'nothing is automatic on Ethereum' - every function needs incentive design. Contains 12 critical gotchas, historical hack lessons, and production-ready code patterns.",
+  "keywords": [
+    "ethereum",
+    "solidity",
+    "web3",
+    "defi",
+    "smart-contracts",
+    "scaffold-eth",
+    "speedrun-ethereum",
+    "security",
+    "erc20",
+    "erc721",
+    "uniswap",
+    "aave",
+    "chainlink"
+  ],
+  "capabilities": [
+    "ethereum-fundamentals",
+    "solidity-development",
+    "defi-protocol-integration",
+    "security-auditing",
+    "scaffold-eth-tooling",
+    "code-review"
+  ],
+  "references": [
+    "https://speedrunethereum.com/",
+    "https://scaffoldeth.io/",
+    "https://docs.scaffoldeth.io/",
+    "https://docs.openzeppelin.com/",
+    "https://docs.uniswap.org/",
+    "https://docs.aave.com/",
+    "https://docs.chain.link/",
+    "https://rekt.news/leaderboard/"
+  ]
+}
