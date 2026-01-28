@@ -1,0 +1,11 @@
+{
+  "owner": "lxgicstudios",
+  "slug": "ci-gen",
+  "displayName": "CI/CD Workflow Generator",
+  "latest": {
+    "version": "1.0.0",
+    "publishedAt": 1769626080933,
+    "commit": null
+  },
+  "history": []
+}
