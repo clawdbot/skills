@@ -1,6 +1,6 @@
 {
   "name": "deepread",
-  "version": "1.0.0",
+  "version": "1.2.0",
   "description": "Production OCR API for AI agents. Process PDFs and extract structured data with confidence scoring.",
   "author": "DeepRead <hello@deepread.tech>",
   "homepage": "https://www.deepread.tech",

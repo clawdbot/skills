@@ -15,8 +15,8 @@ DeepRead is a production-grade document processing API that **reduces human revi
 - **Text Extraction**: Convert PDFs to clean markdown
 - **Structured Data**: Extract JSON fields with confidence scores
 - **Quality Flags**: AI determines which fields need human verification (`hil_flag`)
-- **Multi-Pass Processing**: 3-8 validation passes depending on pipeline
-- **Multi-Model Consensus**: GPT-5 + Gemini for maximum accuracy
+- **Multi-Pass Processing**: Multiple validation passes for maximum accuracy
+- **Multi-Model Consensus**: Cross-validation between models for reliability
 - **Free Tier**: 2,000 pages/month (no credit card required)
 
 ## Setup
@@ -37,7 +37,23 @@ Save your API key:
 export DEEPREAD_API_KEY="sk_live_your_key_here"
 ```
 
-### 2. Process Your First Document
+### 2. Clawdbot Configuration (Optional)
+
+Add to your `clawdbot.config.json5`:
+```json5
+{
+  skills: {
+    entries: {
+      "deepread": {
+        enabled: true,
+        apiKey: "sk_live_your_key_here"
+      }
+    }
+  }
+}
+```
+
+### 3. Process Your First Document
 
 **Option A: With Webhook (Recommended)**
 ```bash
@@ -53,7 +69,7 @@ curl -X POST https://api.deepread.tech/v1/process \
   "status": "queued"
 }
 
-# Your webhook receives results when processing completes (30-180 seconds)
+# Your webhook receives results when processing completes (2-5 minutes)
 ```
 
 **Option B: Poll for Results**
@@ -246,23 +262,22 @@ curl -X POST https://api.deepread.tech/v1/process \
 
 ### ❌ Don't Use For:
 
-- **Real-time Processing**: Processing takes 30-180 seconds (async workflow)
+- **Real-time Processing**: Processing takes 2-5 minutes (async workflow)
 - **Batch >2,000 pages/month**: Upgrade to PRO or SCALE tier
 
 ## How It Works
 
 ### Multi-Pass Pipeline
 
-**Standard Pipeline** (faster, single model):
 ```
-PDF → Convert → Rotate → OCR (GPT-5) → Validate → Extract → Done
+PDF → Convert → Rotate Correction → OCR → Multi-Model Validation → Extract → Done
 ```
 
-**Searchable Pipeline** (creates searchable PDF):
-```
-PDF → Convert → Rotate → EasyOCR → LLM Validation → Searchable PDF
-                      → Multi-Model OCR → Markdown Text
-```
+The pipeline automatically handles:
+- Document rotation and orientation correction
+- Multi-pass validation for accuracy
+- Cross-model consensus for reliability
+- Field-level confidence scoring
 
 ### Quality Review (hil_flag)
 
@@ -643,7 +658,7 @@ def process_extraction(data):
 - **Email**:  hello@deepread.tech
 
 ### Important Notes
-- **Processing Time**: 30-180 seconds (async, not real-time)
+- **Processing Time**: 2-5 minutes (async, not real-time)
 - **Async Workflow**: Use webhooks (recommended) or polling
 - **Rate Limits**: 10 req/min on free tier
 - **File Size Limit**: 50MB per file
