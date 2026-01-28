@@ -1,0 +1,19 @@
+{
+  "name": "@fieldy/fieldy-moltbot",
+  "version": "0.1.0",
+  "description": "Moltbot skill: Fieldy webhook transform + skill",
+  "private": false,
+  "type": "module",
+  "moltbot": {
+    "extensions": ["./index.ts"]
+  },
+  "files": [
+    "index.ts",
+    "moltbot.plugin.json",
+    "README.md",
+    "skills/**",
+    "transforms/**"
+  ],
+  "license": "MIT"
+}
+
