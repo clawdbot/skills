@@ -1,0 +1,11 @@
+{
+  "owner": "otherpowers",
+  "slug": "attribution-engine",
+  "displayName": "Attribution Engine (2026+)",
+  "latest": {
+    "version": "1.2.0",
+    "publishedAt": 1769596641547,
+    "commit": null
+  },
+  "history": []
+}
