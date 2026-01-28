@@ -1,0 +1,14 @@
+{
+  "name": "ai-diagram",
+  "version": "1.0.0",
+  "description": "Generate Mermaid diagrams from your codebase using AI",
+  "main": "dist/index.js",
+  "bin": { "ai-diagram": "dist/cli.js" },
+  "scripts": { "build": "tsc" },
+  "keywords": ["ai", "openai", "gpt", "mermaid", "diagram", "architecture", "visualization", "flowchart", "sequence", "developer-tools", "cli", "automation", "typescript", "documentation", "uml"],
+  "license": "MIT",
+  "dependencies": { "commander": "^12.1.0", "openai": "^4.73.0", "ora": "^5.4.1", "glob": "^10.3.0" },
+  "devDependencies": { "typescript": "^5.6.0", "@types/node": "^22.0.0" },
+  "author": "LXGIC Studios",
+  "repository": { "type": "git", "url": "https://github.com/lxgicstudios/ai-diagram" }
+}
