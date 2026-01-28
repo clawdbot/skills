@@ -1,0 +1,11 @@
+{
+  "owner": "ascendswang",
+  "slug": "ffmpeg-cli",
+  "displayName": "FFmpeg CLI",
+  "latest": {
+    "version": "1.0.0",
+    "publishedAt": 1769579607401,
+    "commit": null
+  },
+  "history": []
+}
