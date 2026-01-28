@@ -1,0 +1,11 @@
+{
+  "owner": "lxgicstudios",
+  "slug": "monorepo-gen",
+  "displayName": "Monorepo Generator",
+  "latest": {
+    "version": "1.0.1",
+    "publishedAt": 1769632650288,
+    "commit": null
+  },
+  "history": []
+}
