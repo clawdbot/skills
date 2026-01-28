@@ -1,0 +1,11 @@
+{
+  "name": "hyperliquid-cli",
+  "version": "1.0.0",
+  "type": "module",
+  "dependencies": {
+    "ethers": "^6.9.0",
+    "hyperliquid": "^1.7.7",
+    "node-fetch": "^3.3.2",
+    "ws": "^8.19.0"
+  }
+}
