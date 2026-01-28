@@ -1,0 +1,11 @@
+{
+  "owner": "lxgicstudios",
+  "slug": "adr-writer",
+  "displayName": "ADR Writer",
+  "latest": {
+    "version": "1.0.0",
+    "publishedAt": 1769626056585,
+    "commit": null
+  },
+  "history": []
+}
