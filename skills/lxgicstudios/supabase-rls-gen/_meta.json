@@ -1,0 +1,11 @@
+{
+  "owner": "lxgicstudios",
+  "slug": "supabase-rls-gen",
+  "displayName": "Supabase RLS Generator",
+  "latest": {
+    "version": "1.0.0",
+    "publishedAt": 1769627647713,
+    "commit": null
+  },
+  "history": []
+}
