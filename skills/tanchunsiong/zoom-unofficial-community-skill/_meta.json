@@ -3,9 +3,15 @@
   "slug": "zoom-unofficial-community-skill",
   "displayName": "Zoom Unofficial Community Skill",
   "latest": {
-    "version": "0.0.2",
-    "publishedAt": 1769513729153,
-    "commit": "https://github.com/clawdbot/skills/commit/27492bbf1fb4983bbbf342ed680d42d3cd463b85"
+    "version": "0.0.3",
+    "publishedAt": 1769596191470,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "0.0.2",
+      "publishedAt": 1769513729153,
+      "commit": "https://github.com/clawdbot/skills/commit/27492bbf1fb4983bbbf342ed680d42d3cd463b85"
+    }
+  ]
 }

@@ -15,12 +15,13 @@ pip3 install requests PyJWT --break-system-packages
 
 ## Authentication
 
-Set these in `.env`:
+Set these in the skill's `.env` file (copy from `.env.example`):
 
 - `ZOOM_ACCOUNT_ID` — Account ID (from Zoom Marketplace app)
 - `ZOOM_CLIENT_ID` — OAuth Client ID
 - `ZOOM_CLIENT_SECRET` — OAuth Client Secret
 - `ZOOM_USER_EMAIL` — Email of the Zoom user to act as (required for S2S apps; defaults to `me` if unset)
+- `ZOOM_RTMS_CLIENT_ID` — Client ID of the RTMS Marketplace app (required for `rtms-start`/`rtms-stop`; this is a separate app from the S2S OAuth app)
 
 Create a **Server-to-Server OAuth** app at https://marketplace.zoom.us/ for full API access.
 See [references/AUTH.md](references/AUTH.md) for detailed setup guide.
@@ -32,6 +33,15 @@ See [references/AUTH.md](references/AUTH.md) for detailed setup guide.
 ```bash
 # List upcoming meetings
 python3 scripts/zoom.py meetings list
+
+# List live/in-progress meetings (requires Business+ plan with Dashboard)
+python3 scripts/zoom.py meetings live
+
+# Start RTMS for a live meeting (requires ZOOM_RTMS_CLIENT_ID)
+python3 scripts/zoom.py meetings rtms-start <meeting_id>
+
+# Stop RTMS for a live meeting
+python3 scripts/zoom.py meetings rtms-stop <meeting_id>
 
 # Get meeting details
 python3 scripts/zoom.py meetings get <meeting_id>
@@ -71,9 +81,17 @@ python3 scripts/zoom.py recordings list --from "2026-01-01" --to "2026-01-31"
 # Get recording details
 python3 scripts/zoom.py recordings get <meeting_id>
 
-# Download recording files
+# Download recording files (video/audio)
 python3 scripts/zoom.py recordings download <meeting_id>
 python3 scripts/zoom.py recordings download <meeting_id> --output ~/Downloads
+
+# Download transcript files only
+python3 scripts/zoom.py recordings download-transcript <meeting_id>
+python3 scripts/zoom.py recordings download-transcript <meeting_id> --output ~/Downloads
+
+# Download AI Companion summary as markdown
+python3 scripts/zoom.py recordings download-summary <meeting_uuid>
+python3 scripts/zoom.py recordings download-summary <meeting_uuid> --output ~/Downloads
 
 # Delete a recording
 python3 scripts/zoom.py recordings delete <meeting_id>

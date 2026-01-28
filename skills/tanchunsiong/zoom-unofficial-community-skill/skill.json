@@ -1,0 +1,32 @@
+{
+  "name": "zoom-unofficial-community-skill",
+  "version": "1.1.0",
+  "description": "Zoom API CLI for meetings, recordings, transcripts, AI summaries, chat, users, and phone. Supports live meeting monitoring via Dashboard API and RTMS start/stop control.",
+  "author": "tanchunsiong",
+  "license": "MIT",
+  "repository": "https://github.com/tanchunsiong/zoom-unofficial-community-skill",
+  "keywords": [
+    "zoom",
+    "meetings",
+    "recordings",
+    "transcript",
+    "ai-companion",
+    "rtms",
+    "clawdbot"
+  ],
+  "clawdbot": {
+    "emoji": "📹",
+    "requires": {
+      "env": [
+        "ZOOM_ACCOUNT_ID",
+        "ZOOM_CLIENT_ID",
+        "ZOOM_CLIENT_SECRET"
+      ],
+      "optionalEnv": [
+        "ZOOM_USER_EMAIL",
+        "ZOOM_RTMS_CLIENT_ID"
+      ],
+      "bins": ["python3"]
+    }
+  }
+}
