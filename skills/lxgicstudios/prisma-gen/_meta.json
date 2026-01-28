@@ -1,0 +1,11 @@
+{
+  "owner": "lxgicstudios",
+  "slug": "prisma-gen",
+  "displayName": "Prisma Gen",
+  "latest": {
+    "version": "1.0.1",
+    "publishedAt": 1769626064646,
+    "commit": null
+  },
+  "history": []
+}
