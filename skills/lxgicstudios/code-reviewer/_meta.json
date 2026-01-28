@@ -3,9 +3,15 @@
   "slug": "code-reviewer",
   "displayName": "Code Reviewer",
   "latest": {
-    "version": "1.0.0",
-    "publishedAt": 1769590399834,
-    "commit": "https://github.com/clawdbot/skills/commit/f332533d6adbd0f08bb4e45a964196e9e795a2cd"
+    "version": "1.0.1",
+    "publishedAt": 1769631693964,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "1.0.0",
+      "publishedAt": 1769590399834,
+      "commit": "https://github.com/clawdbot/skills/commit/f332533d6adbd0f08bb4e45a964196e9e795a2cd"
+    }
+  ]
 }
