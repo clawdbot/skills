@@ -1,6 +1,6 @@
 ---
 name: gevety
-version: 1.4.0
+version: 1.5.0
 description: Access your Gevety health data - biomarkers, healthspan scores, biological age, supplements, activities, daily actions, 90-day health protocol, and upcoming tests
 homepage: https://gevety.com
 user-invocable: true
@@ -54,21 +54,23 @@ Authorization: Bearer $GEVETY_API_TOKEN
 
 Base URL: `https://api.gevety.com`
 
-## Standardized Biomarker Names
+## Biomarker Name Handling
 
-The API uses consistent biomarker names across all endpoints. When querying or displaying biomarkers, use these standardized names:
+The API preserves biomarker specificity. Fasting and non-fasting variants are distinct:
 
-| Common Names | API Returns |
-|--------------|-------------|
-| CRP, C-Reactive Protein, hsCRP, CRP High-Sensitive | **hs-CRP** |
-| Glucose, Blood Glucose | **Fasting Glucose** |
-| Insulin, Insulin Fasting | **Fasting Insulin** |
-| IG | **Immature Granulocytes** |
-| Vitamin D, 25-OH Vitamin D | **Vitamin D** |
-| LDL, LDL Cholesterol | **LDL Cholesterol** |
-| HDL, HDL Cholesterol | **HDL Cholesterol** |
+| Input Name | API Returns | Notes |
+|------------|-------------|-------|
+| CRP, C-Reactive Protein | **CRP** or **C-Reactive Protein** | Standard CRP (LOINC 1988-5) |
+| hsCRP, hscrp, Cardio CRP | **hs-CRP** | High-sensitivity CRP (LOINC 30522-7) |
+| Glucose, Blood Glucose | **Glucose** | Generic/unspecified glucose |
+| Fasting Glucose, FBS, FBG | **Glucose Fasting** | Fasting-specific glucose |
+| Insulin, Serum Insulin | **Insulin** | Generic/unspecified insulin |
+| Fasting Insulin | **Insulin Fasting** | Fasting-specific insulin |
+| IG | **Immature Granulocytes** | Expanded for clarity |
+| Vitamin D, 25-OH Vitamin D | **Vitamin D** | |
+| LDL, LDL Cholesterol | **LDL Cholesterol** | |
 
-**Tip**: You can search using any common name (e.g., "CRP" or "glucose") - the API will match and return the standardized name.
+**Important**: The API no longer forces fasting assumptions. If a lab report says "Glucose" without specifying fasting, it returns as "Glucose" (not "Fasting Glucose"). This preserves the original context from your lab results.
 
 ## Available Endpoints
 
@@ -366,9 +368,9 @@ Each health dimension is scored independently:
 3. Note optimal range vs current value
 
 ### "What's my CRP?" / "How's my inflammation?"
-1. Call `query_biomarker?biomarker=crp` (returns as "hs-CRP")
+1. Call `query_biomarker?biomarker=crp` (returns as "CRP" or "hs-CRP" depending on lab)
 2. Present the value and trend
-3. Explain what hs-CRP measures (inflammation marker)
+3. Explain what CRP measures (inflammation marker) - note if it's high-sensitivity
 
 ### "How's my sleep/HRV?"
 1. Call `get_wearable_stats?metric=sleep` or `?metric=hrv`
