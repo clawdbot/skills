@@ -1,0 +1,11 @@
+{
+  "owner": "thisisjeron",
+  "slug": "actual-budget",
+  "displayName": "Actual Budget CLI to interact with the Actual Budget API",
+  "latest": {
+    "version": "1.0.1",
+    "publishedAt": 1769585816231,
+    "commit": null
+  },
+  "history": []
+}
