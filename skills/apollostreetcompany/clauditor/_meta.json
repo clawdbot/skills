@@ -3,9 +3,15 @@
   "slug": "clauditor",
   "displayName": "Clauditor",
   "latest": {
-    "version": "0.1.1",
-    "publishedAt": 1769498687103,
-    "commit": "https://github.com/clawdbot/skills/commit/798b1aa1b9c318de83a5eb7a48f35e165b292864"
+    "version": "0.1.2",
+    "publishedAt": 1769567281135,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "0.1.1",
+      "publishedAt": 1769498687103,
+      "commit": "https://github.com/clawdbot/skills/commit/798b1aa1b9c318de83a5eb7a48f35e165b292864"
+    }
+  ]
 }
