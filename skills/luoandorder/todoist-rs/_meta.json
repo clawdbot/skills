@@ -1,0 +1,11 @@
+{
+  "owner": "luoandorder",
+  "slug": "todoist-rs",
+  "displayName": "todoist latest",
+  "latest": {
+    "version": "1.0.1",
+    "publishedAt": 1769552671529,
+    "commit": null
+  },
+  "history": []
+}
