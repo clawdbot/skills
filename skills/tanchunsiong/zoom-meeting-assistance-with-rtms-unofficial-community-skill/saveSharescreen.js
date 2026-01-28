@@ -4,7 +4,7 @@ import path from 'path';
 import sharp from 'sharp';
 import pixelmatch from 'pixelmatch';
 import PDFDocument from 'pdfkit';
-import { sanitizeFileName } from './tool.js';
+import { sanitizeFileName, getRecordingsPath } from './tool.js';
 
 // Session state: Map<meetingUuid, { uniqueFrameCounter: number, lastAcceptedBuffer: Buffer, uniqueFrames: Array<{filePath: string, timestamp: number}> }>
 const meetingSessions = new Map();
@@ -59,7 +59,7 @@ async function handleShareData(shareData, user_id, timestamp, meetingUuid) {
     }
 
     // Ensure processed folder exists
-    const processedDir = path.resolve('recordings', safeMeetingUuid, 'processed', 'jpg');
+    const processedDir = path.join(getRecordingsPath(meetingUuid), 'processed', 'jpg');
     if (!fs.existsSync(processedDir)) {
         fs.mkdirSync(processedDir, { recursive: true });
     }
@@ -133,7 +133,7 @@ async function generatePDFAndText(streamId) {
 
     console.log(`Generating PDF for stream ${safeStreamId} with ${session.uniqueFrames.length} frames`);
 
-    const processedDir = path.resolve('recordings', safeStreamId, 'processed');
+    const processedDir = path.join(getRecordingsPath(streamId), 'processed');
     const pdfPath = path.join(processedDir, 'screenshare.pdf');
     const txtPath = path.join(processedDir, 'frames.txt');
 

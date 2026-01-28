@@ -1,6 +1,6 @@
 import fs from 'fs';
 import path from 'path';
-import { sanitizeFileName } from './tool.js';
+import { sanitizeFileName, getRecordingsPath } from './tool.js';
 
 let srtIndex = 1;
 const streamStartTimestamps = new Map(); // Track start timestamp per stream
@@ -53,7 +53,7 @@ export function writeTranscriptToVtt(user_name, timestamp, data, streamId) {
 
   const safeStreamId = sanitizeFileName(streamId);
 
-  const meetingFolder = path.join('recordings', safeStreamId);
+  const meetingFolder = getRecordingsPath(streamId);
   if (!fs.existsSync(meetingFolder)) {
     fs.mkdirSync(meetingFolder, { recursive: true });
   }

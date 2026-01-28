@@ -2,15 +2,13 @@ import fs from 'fs';
 import path from 'path';
 import { exec } from 'child_process';
 import { promisify } from 'util';
-import { sanitizeFileName } from './tool.js';
+import { sanitizeFileName, getRecordingsPath } from './tool.js';
 
 const runFFmpegCommand = promisify(exec);
 
 // Asynchronous function to convert meeting media files
 export async function convertMeetingMedia(streamId) {
-  const safeStreamId = sanitizeFileName(streamId);
-
-  const folderPath = path.join('recordings', safeStreamId);
+  const folderPath = getRecordingsPath(streamId);
 
   if (!fs.existsSync(folderPath)) {
     console.error(`❌ Meeting folder does not exist: ${folderPath}`);

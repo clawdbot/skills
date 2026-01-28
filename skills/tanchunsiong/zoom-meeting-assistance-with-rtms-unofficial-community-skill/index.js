@@ -19,7 +19,9 @@ import { handleShareData, generatePDFAndText } from './saveSharescreen.js';
 
 
 
-import { sanitizeFileName } from './tool.js';
+import { sanitizeFileName, getRecordingsPath } from './tool.js';
+import { convertMeetingMedia } from './convertMeetingMedia.js';
+import { muxMixedAudioAndActiveSpeakerVideo } from './muxMixedAudioAndActiveSpeakerVideo.js';
 
 // Import Clawdbot AI functions
 import { chatWithClawdbot, chatWithClawdbotFast, generateDialogSuggestions, analyzeSentiment, generateRealTimeSummary, queryCurrentMeeting, notifyUser } from './chatWithClawdbot.js';
@@ -44,7 +46,6 @@ const ZOOM_SECRET_TOKEN = process.env.ZOOM_SECRET_TOKEN;
 const CLIENT_ID = process.env.ZOOM_CLIENT_ID;
 const CLIENT_SECRET = process.env.ZOOM_CLIENT_SECRET;
 const WEBHOOK_PATH = process.env.WEBHOOK_PATH || '/webhook';
-
 
 // Middleware to parse JSON and URL-encoded bodies
 app.use(express.json());
@@ -93,7 +94,22 @@ app.post(WEBHOOK_PATH, async (req, res) => {
   // Handle RTMS started event
   if (event === 'meeting.rtms_started') {
     console.log('RTMS Started event received');
-    const { meeting_uuid, rtms_stream_id, server_urls } = payload;
+    const { meeting_uuid, rtms_stream_id, server_urls, operator_id } = payload;
+    
+    // Save meeting metadata from webhook payload
+    const metadataDir = getRecordingsPath(rtms_stream_id);
+    fs.mkdirSync(metadataDir, { recursive: true });
+    const metadata = {
+      meeting_uuid,
+      rtms_stream_id,
+      operator_id,
+      server_urls,
+      start_time: new Date().toISOString(),
+      event_ts: req.body.event_ts
+    };
+    fs.writeFileSync(path.join(metadataDir, 'metadata.json'), JSON.stringify(metadata, null, 2));
+    console.log('Meeting metadata saved:', metadata);
+    
     // Initiate connection to the signaling WebSocket server
     connectToSignalingWebSocket(meeting_uuid, rtms_stream_id, server_urls);
   }
@@ -121,6 +137,66 @@ app.post(WEBHOOK_PATH, async (req, res) => {
      // Generate PDF from the unique screen share images
      console.log('Generating PDF from screen share images for stream: ' + rtms_stream_id);
      await generatePDFAndText(rtms_stream_id);
+
+     // Auto-convert raw audio/video to WAV/MP4 and mux
+     console.log('Converting raw media for stream: ' + rtms_stream_id);
+     await convertMeetingMedia(rtms_stream_id);
+     console.log('Muxing audio and video for stream: ' + rtms_stream_id);
+     await muxMixedAudioAndActiveSpeakerVideo(rtms_stream_id);
+     
+     // Notify what was created
+     const recordingsDir = getRecordingsPath(rtms_stream_id);
+     const files = fs.existsSync(recordingsDir) ? fs.readdirSync(recordingsDir) : [];
+     const processedDir = path.join(recordingsDir, 'processed');
+     const processedFiles = fs.existsSync(processedDir) ? fs.readdirSync(processedDir) : [];
+     
+     let notification = `📁 Meeting recording complete!\n\n`;
+     notification += `📂 Folder: ${recordingsDir}\n\n`;
+     notification += `📄 Files created:\n`;
+     files.forEach(f => { if (!fs.statSync(path.join(recordingsDir, f)).isDirectory()) notification += `  • ${f}\n`; });
+     if (processedFiles.length > 0) {
+       notification += `\n📄 Processed:\n`;
+       processedFiles.forEach(f => notification += `  • processed/${f}\n`);
+     }
+     
+     await notifyUser(notification);
+     
+     // Save final formatted summary to summaries folder
+     const summariesDir = path.join(__dirname, 'summaries');
+     fs.mkdirSync(summariesDir, { recursive: true });
+     
+     const safeStreamId = sanitizeFileName(rtms_stream_id);
+     const metadataPath = path.join(recordingsDir, 'metadata.json');
+     const aiSummaryPath = path.join(recordingsDir, 'ai_summary.md');
+     
+     let finalSummary = `# Meeting Summary\n\n`;
+     
+     // Add metadata
+     if (fs.existsSync(metadataPath)) {
+       const metadata = JSON.parse(fs.readFileSync(metadataPath, 'utf-8'));
+       finalSummary += `## Meeting Info\n\n`;
+       finalSummary += `- **Date:** ${metadata.start_time}\n`;
+       finalSummary += `- **Meeting UUID:** ${metadata.meeting_uuid}\n`;
+       finalSummary += `- **Stream ID:** ${metadata.rtms_stream_id}\n`;
+       finalSummary += `- **Recordings:** ${recordingsDir}\n\n`;
+     }
+     
+     // Add AI summary
+     if (fs.existsSync(aiSummaryPath)) {
+       const aiSummary = fs.readFileSync(aiSummaryPath, 'utf-8');
+       finalSummary += `## Summary\n\n${aiSummary}\n`;
+     }
+     
+     // Add file listing
+     finalSummary += `\n## Files\n\n`;
+     files.forEach(f => { if (!fs.statSync(path.join(recordingsDir, f)).isDirectory()) finalSummary += `- ${f}\n`; });
+     if (processedFiles.length > 0) {
+       processedFiles.forEach(f => finalSummary += `- processed/${f}\n`);
+     }
+     
+     const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+     fs.writeFileSync(path.join(summariesDir, `meeting_${timestamp}_${safeStreamId}.md`), finalSummary);
+     console.log('Final summary saved to summaries folder');
    }
 });
 
@@ -146,8 +222,9 @@ async function scheduleAIProcessing(streamId, meetingUuid) {
   aiCache.set(streamId, cache);
 
   try {
-    const vttPath = `recordings/${safeStreamId}/transcript.vtt`;
-    const eventsPath = `recordings/${safeStreamId}/events.log`;
+    const outDir = getRecordingsPath(streamId);
+    const vttPath = path.join(outDir, 'transcript.vtt');
+    const eventsPath = path.join(outDir, 'events.log');
     const transcript = fs.existsSync(vttPath) ? fs.readFileSync(vttPath, 'utf-8') : '';
     const eventsLog = fs.existsSync(eventsPath) ? fs.readFileSync(eventsPath, 'utf-8') : '';
 
@@ -156,8 +233,6 @@ async function scheduleAIProcessing(streamId, meetingUuid) {
       aiCache.set(streamId, cache);
       return;
     }
-
-    const outDir = `recordings/${safeStreamId}`;
     fs.mkdirSync(outDir, { recursive: true });
 
     const dialogResult = await generateDialogSuggestions(transcript);
@@ -181,7 +256,8 @@ async function scheduleAIProcessing(streamId, meetingUuid) {
 
     const summaryResult = await generateRealTimeSummary(transcript, eventsLog, [], streamId, meetingUuid);
     cache.summary = summaryResult;
-    fs.writeFileSync(`${outDir}/ai_summary.md`, summaryResult);
+    fs.writeFileSync(path.join(outDir, 'ai_summary.md'), summaryResult);
+    
     if (notificationsEnabled) {
       await notifyUser(`📝 Meeting summary:\n${summaryResult.substring(0, 500)}`);
     }
@@ -311,20 +387,23 @@ function connectToSignalingWebSocket(meetingUuid, streamId, serverUrl) {
         case 2:
           console.log("Event: Active speaker has changed.");
           const eventData2 = { ...msg.event, event_type: eventTypeNames[msg.event.event_type] };
-          fs.mkdirSync(`recordings/${safeStreamId}`, { recursive: true });
-          fs.appendFileSync(`recordings/${safeStreamId}/events.log`, JSON.stringify({ timestamp: formatVTTTime(Date.now() - activeConnections.get(streamId).startTime), event: eventData2 }) + '\n');
+          const eventsDir2 = getRecordingsPath(streamId);
+          fs.mkdirSync(eventsDir2, { recursive: true });
+          fs.appendFileSync(path.join(eventsDir2, 'events.log'), JSON.stringify({ timestamp: formatVTTTime(Date.now() - activeConnections.get(streamId).startTime), event: eventData2 }) + '\n');
           break;
         case 3:
           console.log("Event: Participant joined.");
           const eventData3 = { ...msg.event, event_type: eventTypeNames[msg.event.event_type] };
-          fs.mkdirSync(`recordings/${safeStreamId}`, { recursive: true });
-          fs.appendFileSync(`recordings/${safeStreamId}/events.log`, JSON.stringify({ timestamp: formatVTTTime(Date.now() - activeConnections.get(streamId).startTime), event: eventData3 }) + '\n');
+          const eventsDir3 = getRecordingsPath(streamId);
+          fs.mkdirSync(eventsDir3, { recursive: true });
+          fs.appendFileSync(path.join(eventsDir3, 'events.log'), JSON.stringify({ timestamp: formatVTTTime(Date.now() - activeConnections.get(streamId).startTime), event: eventData3 }) + '\n');
           break;
         case 4:
           console.log("Event: Participant left.");
           const eventData4 = { ...msg.event, event_type: eventTypeNames[msg.event.event_type] };
-          fs.mkdirSync(`recordings/${safeStreamId}`, { recursive: true });
-          fs.appendFileSync(`recordings/${safeStreamId}/events.log`, JSON.stringify({ timestamp: formatVTTTime(Date.now() - activeConnections.get(streamId).startTime), event: eventData4 }) + '\n');
+          const eventsDir4 = getRecordingsPath(streamId);
+          fs.mkdirSync(eventsDir4, { recursive: true });
+          fs.appendFileSync(path.join(eventsDir4, 'events.log'), JSON.stringify({ timestamp: formatVTTTime(Date.now() - activeConnections.get(streamId).startTime), event: eventData4 }) + '\n');
           break;
         default:
           console.log("Event: Unknown event type.");
@@ -559,7 +638,7 @@ function connectToMediaWebSocket(mediaUrl, meetingUuid, safestreamId, streamId, 
           channel: 1,
           codec: 1,
           data_opt: 1,   //AUDIO_MIXED_STREAM = 1,     AUDIO_MULTI_STREAMS = 2,     
-          send_rate: 100
+          send_rate: 20
         },
         video: {
           codec: 7, //H264
@@ -683,10 +762,10 @@ function connectToMediaWebSocket(mediaUrl, meetingUuid, safestreamId, streamId, 
          }
          
          console.log(`Chat message from ${user_name} (ID: ${user_id}): "${data}"`);
-         const safeStreamId = sanitizeFileName(streamId);
-         fs.mkdirSync(`recordings/${safeStreamId}`, { recursive: true });
+         const chatDir = getRecordingsPath(streamId);
+         fs.mkdirSync(chatDir, { recursive: true });
          const chatLine = `[${new Date(timestamp).toISOString()}] ${user_name}: ${data}\n`;
-         fs.appendFileSync(`recordings/${safeStreamId}/chat.txt`, chatLine);
+         fs.appendFileSync(path.join(chatDir, 'chat.txt'), chatLine);
        }
     } catch (err) {
       console.error('Error processing media message:', err);

@@ -1,6 +1,6 @@
 import fs from 'fs';
 import path from 'path';
-import { sanitizeFileName } from './tool.js';
+import { sanitizeFileName, getRecordingsPath } from './tool.js';
 
 const spsWrittenMap = new Map();
 const spsHeader = fs.readFileSync('sps_pps_keyframe.h264');
@@ -19,13 +19,13 @@ const lastTimestamps = new Map();
 
 export function saveRawVideo(buffer, userName, timestamp, streamId) {
     const safeStreamId = sanitizeFileName(streamId);
-    const outputDir = path.join('recordings', safeStreamId);
+    const outputDir = getRecordingsPath(streamId);
 
     if (!fs.existsSync(outputDir)) {
         fs.mkdirSync(outputDir, { recursive: true });
     }
 
-    const filePath = path.join(outputDir, `combined.h264`);
+    const filePath = path.join(outputDir, `activespeakervideo.h264`);
 
     let writeStream = videoWriteStreams.get(filePath);
     if (!writeStream) {
