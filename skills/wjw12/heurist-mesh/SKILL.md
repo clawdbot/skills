@@ -149,6 +149,74 @@ To customize which agents are enabled:
 }
 ```
 
+## Ask Heurist
+
+Ask Heurist (https://ask.heurist.ai) is a crypto Q&A and research agent built for traders and crypto-natives. It turns market data, social sentiment, and on-chain signals into actionable answers, especially for DEX tokens and fast-moving narratives.
+
+**API Base URL**: `https://ask-backend.heurist.xyz`
+
+**Auth**: Uses the same Heurist API key as the MCP configuration above. Provide via:
+- `X-HEURIST-API-KEY: {api_key}` header
+- or `Authorization: Bearer {api_key}` header
+
+### Mode Selection
+
+| Mode | Cost | Use When |
+|------|------|----------|
+| `normal` | 2 credits | Targeted, simple questions: token prices, recent news, market digest |
+| `deep` | 10 credits | Complex/ambiguous asks: broad topics, trading advice, multi-factor analysis |
+
+**Examples:**
+- **normal**: "What is 0x… token price?", "Recent news about ZKSync", "Give me a market digest"
+- **deep**: Broad topics, multiple entities, conflicting signals, trading advice, multi-source deep dives
+
+If the user doesn't specify, default to `deep` for complex/broad/ambiguous or trading-advice scenarios; otherwise use `normal`.
+
+### Polling Strategy
+
+| Mode | Typical Duration | Recommended Polling |
+|------|------------------|---------------------|
+| `normal` | < 1 min | Wait 1 min, then poll every 30s |
+| `deep` | 2-3 min (longer for complex/broad topics) | Wait 2 min, then poll every 1 min |
+
+### 1. Create a Job
+
+```bash
+curl -s https://ask-backend.heurist.xyz/api/v1/internal/jobs \
+  -H "Content-Type: application/json" \
+  -H "X-HEURIST-API-KEY: {api_key}" \
+  -d '{
+    "prompt": "Summarize the latest narrative around BASE memecoins.",
+    "mode": "deep"
+  }'
+```
+
+Response:
+```json
+{
+  "job_id": "{job_id}",
+  "status": "pending",
+  "created_at": "2026-01-28T12:34:56+00:00"
+}
+```
+
+### 2. Poll Job Status
+
+```bash
+curl -s https://ask-backend.heurist.xyz/api/v1/internal/jobs/{job_id} \
+  -H "X-HEURIST-API-KEY: {api_key}"
+```
+
+Response:
+```json
+{
+  "status": "completed",
+  "prompt": "Summarize the latest narrative around BASE memecoins.",
+  "result_text": "...assistant output...",
+  "share_url": "https://ask.heurist.ai/share/{job_id}"
+}
+```
+
 ## Limitations
 
 Heurist Mesh provides **read-only** crypto intelligence and analytics. It **cannot**:
