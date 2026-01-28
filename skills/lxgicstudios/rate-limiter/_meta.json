@@ -1,0 +1,11 @@
+{
+  "owner": "lxgicstudios",
+  "slug": "rate-limiter",
+  "displayName": "Rate Limiter Generator",
+  "latest": {
+    "version": "1.0.1",
+    "publishedAt": 1769626710537,
+    "commit": null
+  },
+  "history": []
+}
