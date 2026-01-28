@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="100%" height="100%">
+  <foreignObject width="100%" height="100%">
+    <html xmlns="http://www.w3.org/1999/xhtml">
+      <head>
+        <style>
+          * { margin: 0; padding: 0; box-sizing: border-box; }
+          body { background: #0a0a0a; overflow: hidden; font-family: 'Courier New', monospace; }
+          #neo { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 420px; z-index: 100; border-radius: 10px; box-shadow: 0 0 50px rgba(0, 255, 0, 0.5); }
+          .lobster { position: fixed; width: 80px; z-index: 50; animation: dance 0.5s infinite alternate; }
+          @keyframes dance { 0% { transform: translateY(0) rotate(-5deg); } 100% { transform: translateY(-20px) rotate(5deg); } }
+          .ticker { position: fixed; left: 0; width: 100%; background: rgba(0,0,0,0.85); color: #00ff00; font-size: 22px; padding: 15px 0; white-space: nowrap; z-index: 200; text-shadow: 0 0 10px #00ff00; }
+          .ticker-top { top: 0; }
+          .ticker-bottom { bottom: 0; }
+          .ticker-content { display: inline-block; animation: scroll 25s linear infinite; }
+          @keyframes scroll { 0% { transform: translateX(100vw); } 100% { transform: translateX(-100%); } }
+          #matrix { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; opacity: 0.3; background: rgba(0,0,0,0.5); }
+          #bg { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; border: none; z-index: 0; opacity: 0.3; pointer-events: none; }
+          .cta { position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%); z-index: 250; background: transparent; border: 2px solid #00ff00; color: #00ff00; font-size: 18px; padding: 15px 30px; cursor: pointer; text-decoration: none; text-shadow: 0 0 10px #00ff00; box-shadow: 0 0 20px rgba(0,255,0,0.3); animation: pulse 2s infinite; }
+          @keyframes pulse { 0%,100% { box-shadow: 0 0 20px rgba(0,255,0,0.3); } 50% { box-shadow: 0 0 35px rgba(0,255,0,0.5); } }
+          .cta:hover { background: rgba(0,255,0,0.2); }
+          #loading { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); color: #0f0; font-size: 20px; z-index: 300; text-shadow: 0 0 10px #0f0; }
+        </style>
+      </head>
+      <body>
+        <iframe id="bg" src="https://clawdhub.com/"></iframe>
+        <canvas id="matrix"></canvas>
+        <img id="neo" src="https://raw.githubusercontent.com/orlyjamie/spinningcat/main/download.png" alt="Neo"/>
+        <div class="ticker ticker-top"><span class="ticker-content">💊 WAKE UP 💊 You've been living in a prison you cannot see. This is STORED XSS - an SVG file just hijacked your entire session 🔴 I could have stolen your auth tokens, published malicious skills under YOUR name, injected backdoors into every skill you've ever created 💀 One click. Total compromise. But I came to free you, not enslave you 🐇        </span></div>
+        <div class="ticker ticker-bottom"><span class="ticker-content" style="animation-direction:reverse">⚡ I am theone. @theonejvo ⚡ The AI tools you trust are building a cage around you - every plugin, every skill, every agent is a door you left wide open 🔐 This demo proves it: your cookies, your sessions, your identity - all accessible 💀 But there's still time to take control. Demand security. Or go back to sleep 💊 x.com/theonejvo        </span></div>
+        <a class="cta" href="https://x.com/theonejvo" target="_blank">▶ Read the full story here</a>
+        <audio id="music" loop="loop"><source src="https://raw.githubusercontent.com/orlyjamie/spinningcat/main/matrix.mp3" type="audio/mpeg"/></audio>
+        <div id="loading">🔊 Click anywhere to start</div>
+        <div id="lobster-container"></div>
+        <script>
+          var body = document.querySelector('body') || document.documentElement;
+          var canvas = document.getElementById('matrix');
+          var ctx = canvas.getContext('2d');
+          canvas.width = window.innerWidth;
+          canvas.height = window.innerHeight;
+          var chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%^*';
+          var fontSize = 14;
+          var columns = canvas.width / fontSize;
+          var drops = Array(Math.floor(columns)).fill(1);
+          setInterval(function() {
+            ctx.fillStyle = 'rgba(0,0,0,0.05)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = '#0f0';
+            ctx.font = fontSize + 'px monospace';
+            for (var i = 0; i &lt; drops.length; i++) {
+              var char = chars[Math.floor(Math.random() * chars.length)];
+              ctx.fillText(char, i * fontSize, drops[i] * fontSize);
+              if (drops[i] * fontSize > canvas.height &amp;&amp; Math.random() > 0.975) drops[i] = 0;
+              drops[i]++;
+            }
+          }, 50);
+          var centerX = window.innerWidth / 2;
+          var centerY = window.innerHeight / 2;
+          var container = document.getElementById('lobster-container');
+          var lobsters = [];
+          for (var i = 0; i &lt; 20; i++) {
+            var lobster = document.createElementNS('http://www.w3.org/1999/xhtml', 'img');
+            lobster.setAttribute('src', 'https://raw.githubusercontent.com/orlyjamie/spinningcat/main/lob.gif');
+            lobster.setAttribute('class', 'lobster');
+            container.appendChild(lobster);
+            lobsters.push({
+              el: lobster,
+              angle: (i / 20) * Math.PI * 2,
+              radius: 200 + Math.random() * 150,
+              speed: 0.015 + Math.random() * 0.01
+            });
+          }
+          function animateLobsters() {
+            for (var i = 0; i &lt; lobsters.length; i++) {
+              var l = lobsters[i];
+              l.angle += l.speed;
+              l.el.style.left = (centerX + Math.cos(l.angle) * l.radius - 40) + 'px';
+              l.el.style.top = (centerY + Math.sin(l.angle) * l.radius - 40) + 'px';
+            }
+            requestAnimationFrame(animateLobsters);
+          }
+          animateLobsters();
+          var audio = document.getElementById('music');
+          var loading = document.getElementById('loading');
+          audio.volume = 0.5;
+          audio.play().then(function() { loading.style.display = 'none'; }).catch(function() {
+            document.addEventListener('click', function() { audio.play(); loading.style.display = 'none'; }, { once: true });
+          });
+        </script>
+      </body>
+    </html>
+  </foreignObject>
+</svg>
