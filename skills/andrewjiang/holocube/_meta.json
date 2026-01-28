@@ -3,11 +3,16 @@
   "slug": "holocube",
   "displayName": "HoloCube (Pomodoro + Trackers)",
   "latest": {
-    "version": "0.2.0",
-    "publishedAt": 1769556906257,
-    "commit": "https://github.com/clawdbot/skills/commit/70f7d2b9b3afd23047889e2afa4c042c7876ffe4"
+    "version": "0.2.2",
+    "publishedAt": 1769625189390,
+    "commit": null
   },
   "history": [
+    {
+      "version": "0.2.0",
+      "publishedAt": 1769556906257,
+      "commit": "https://github.com/clawdbot/skills/commit/70f7d2b9b3afd23047889e2afa4c042c7876ffe4"
+    },
     {
       "version": "1.1.0",
       "publishedAt": 1768930983932,

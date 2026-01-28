@@ -32,21 +32,20 @@ Control the GeekMagic HelloCubic-Lite with HoloClawd firmware via REST API.
 
 ## Quick Start
 
-**Pomodoro Timer** (Andrew's local version with Spotify integration):
+**Pomodoro Timer**:
 
 ```bash
 # Run pomodoro timer with lobster mascot (25 min work, 5 min break)
-# Uses hardcoded Spotify URIs for focus/break music
-cd ~/Bao/clawd && uv run --script pomodoro.py
+cd ~/Bao/TimeToLockIn/HoloClawd-Open-Firmware/examples && uv run --script pomodoro.py
 
 # With custom task label (max 20 chars)
-cd ~/Bao/clawd && uv run --script pomodoro.py --task "BUILD NETWORK"
+cd ~/Bao/TimeToLockIn/HoloClawd-Open-Firmware/examples && uv run --script pomodoro.py --task "BUILD NETWORK"
+
+# With Spotify integration
+cd ~/Bao/TimeToLockIn/HoloClawd-Open-Firmware/examples && uv run --script pomodoro.py --task "LP UPDATE" --spotify-work "spotify:episode:5yJKH11UlF3sS3gcKKaUYx" --spotify-break "spotify:episode:4U4OloHPFBNHWt0GOKENVF"
 
 # Custom timings
-cd ~/Bao/clawd && uv run --script pomodoro.py --work 50 --short 10 --long 20
-
-# Disable Spotify
-cd ~/Bao/clawd && uv run --script pomodoro.py --no-spotify
+cd ~/Bao/TimeToLockIn/HoloClawd-Open-Firmware/examples && uv run --script pomodoro.py --work 50 --short 10 --long 20
 ```
 
 **Drawing API** (requires holocube_client.py from repo):
@@ -95,73 +94,82 @@ draw_confetti(cube, 120, 120, frame=1)             # Animate confetti
 
 ## Pomodoro Timer
 
-Full pomodoro timer with cute lobster buddy. **Use Andrew's local version** at `~/Bao/clawd/pomodoro.py`:
+Full pomodoro timer with cute lobster buddy located in the HoloCube firmware repo:
 
 ```bash
-# Always run from local directory
-cd ~/Bao/clawd
+# Always run from the examples directory
+cd ~/Bao/TimeToLockIn/HoloClawd-Open-Firmware/examples
 
-# Default: 25 min work, 5 min break (with Spotify)
+# Default: 25 min work, 5 min break
 uv run --script pomodoro.py
 
 # With custom task label
 uv run --script pomodoro.py --task "CODE REVIEW"
-uv run --script pomodoro.py -t "BUILD NETWORK"
+uv run --script pomodoro.py --task "BUILD NETWORK"
+
+# With Spotify integration (Andrew's favorite URIs)
+uv run --script pomodoro.py --task "LP UPDATE" \
+  --spotify-work "spotify:episode:5yJKH11UlF3sS3gcKKaUYx" \
+  --spotify-break "spotify:episode:4U4OloHPFBNHWt0GOKENVF"
 
 # Custom timings
 uv run --script pomodoro.py --work 50 --short 10 --long 20
 
-# Disable Spotify
-uv run --script pomodoro.py --no-spotify
+# With trackers
+uv run --script pomodoro.py --water 2 --exercise 1 --focus 3
 ```
 
-**Andrew's Version** (~/Bao/clawd/pomodoro.py):
-- Hardcoded Spotify URIs:
-  - Focus: `spotify:episode:5yJKH11UlF3sS3gcKKaUYx`
-  - Break: `spotify:episode:4U4OloHPFBNHWt0GOKENVF`
-- Uses `~/clawd/skills/spotify-applescript/spotify.sh` for playback
+**Location**: `~/Bao/TimeToLockIn/HoloClawd-Open-Firmware/examples/pomodoro.py`
+- Uses `spotify.sh` in the same directory for playback
+- Supports icon-based trackers (water, exercise, focus, pills)
+- Interactive command listener for live controls
 
 Options:
-- `--task`, `-t`: Task label displayed during work (max 20 chars, auto-uppercased)
+- `--task`: Task label displayed during work (max 20 chars, auto-uppercased)
 - `--work`: Work duration in minutes (default: 25)
 - `--short`: Short break in minutes (default: 5)
 - `--long`: Long break in minutes (default: 15)
 - `--sessions`: Sessions before long break (default: 4)
-- `--no-spotify`: Disable automatic music playback
+- `--spotify-work`: Spotify URI for work sessions
+- `--spotify-break`: Spotify URI for break sessions
+- `--water`: Water glasses consumed today
+- `--exercise`: Exercise sessions completed
+- `--focus`: Focus sessions completed
+- `--pills-done`: Mark daily pills as taken
 
 Features:
 - Lobster mascot watches you work (focused expression)
 - During breaks: happy lobster with twinkling confetti
 - Flashing alerts between sessions
 - Tracks completed sessions
-- Automatic Spotify playback via AppleScript (macOS)
-- Water tracker in top-left corner (shared with water.py)
+- Optional Spotify playback via AppleScript (macOS)
+- Icon-based trackers displayed on screen
+- Interactive command listener via keyboard
 
-## Water Tracking
+## Trackers
 
-Track daily water consumption with a cute water drop icon in the top-left corner:
+The pomodoro timer supports visual trackers using the Kyrise icon pack. Pass tracker values as arguments to display them during your session:
 
 ```bash
-# Show current count
-uv run --script {baseDir}/water.py
+cd ~/Bao/TimeToLockIn/HoloClawd-Open-Firmware/examples
 
-# Add a glass (+1)
-uv run --script {baseDir}/water.py add
+# Water tracking (glasses consumed)
+uv run --script pomodoro.py --water 3
 
-# Add multiple glasses
-uv run --script {baseDir}/water.py add 2
+# Exercise sessions
+uv run --script pomodoro.py --exercise 1
 
-# Set to specific count
-uv run --script {baseDir}/water.py set 5
+# Focus sessions completed
+uv run --script pomodoro.py --focus 2
 
-# Reset to 0
-uv run --script {baseDir}/water.py reset
+# Pills taken today
+uv run --script pomodoro.py --pills-done
 
-# Change daily goal
-uv run --script {baseDir}/water.py goal 10
+# Combine multiple trackers
+uv run --script pomodoro.py --task "DEEP WORK" --water 3 --exercise 1 --focus 2
 ```
 
-State persists to `~/.holocube_water.json` and auto-resets each day. The water tracker appears in the top-left corner during pomodoro sessions too.
+Tracker icons appear on the HoloCube display with their current counts.
 
 ## Stock Firmware Tools
 
