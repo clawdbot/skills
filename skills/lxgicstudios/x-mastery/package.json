@@ -1,0 +1,26 @@
+{
+  "name": "x-mastery",
+  "version": "1.0.0",
+  "description": "Complete X (Twitter) algorithm mastery - engagement weights, viral formulas, shadow ban avoidance, thread optimization, and growth strategies.",
+  "author": "lxgicstudios",
+  "license": "MIT",
+  "keywords": [
+    "x",
+    "twitter",
+    "algorithm",
+    "viral",
+    "engagement",
+    "growth",
+    "shadowban",
+    "threads",
+    "articles",
+    "social-media",
+    "content-strategy",
+    "clawdbot",
+    "moltbot"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/LXGIC-Studios/x-mastery"
+  }
+}
