@@ -1,0 +1,11 @@
+{
+  "owner": "lxgicstudios",
+  "slug": "query-optimizer",
+  "displayName": "Query Optimizer",
+  "latest": {
+    "version": "1.0.1",
+    "publishedAt": 1769626316308,
+    "commit": null
+  },
+  "history": []
+}
