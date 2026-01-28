@@ -1,0 +1,5 @@
+id: n8n-monitor
+name: n8n Monitor
+description: Monitor workflows and executions in n8n
+entry: index.js
+version: 0.1.0
