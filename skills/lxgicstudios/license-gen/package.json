@@ -1,0 +1,34 @@
+{
+  "name": "ai-license",
+  "version": "1.0.0",
+  "description": "Interactive license picker that explains licenses in plain English",
+  "main": "dist/index.js",
+  "bin": {
+    "ai-license": "dist/cli.js"
+  },
+  "scripts": {
+    "build": "tsc"
+  },
+  "keywords": [
+    "license",
+    "ai",
+    "cli"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "commander": "^12.1.0",
+    "inquirer": "^8.2.6",
+    "openai": "^4.52.0",
+    "ora": "^5.4.1"
+  },
+  "devDependencies": {
+    "typescript": "^5.5.0",
+    "@types/node": "^20.14.0",
+    "@types/inquirer": "^9.0.7"
+  },
+  "author": "LXGIC Studios",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/lxgicstudios/ai-license"
+  }
+}
