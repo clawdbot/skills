@@ -50,6 +50,10 @@ Or add to `~/.clawdbot/clawdbot.json`:
 "Get video details for Z-FRe5AKmCU"
 ```
 
+## Credits
+
+This skill uses the [youtube-mcp-server](https://github.com/ZubeidHendricks/youtube-mcp-server) by Zubeid Hendricks for YouTube Data API integration.
+
 ## License
 
 MIT
