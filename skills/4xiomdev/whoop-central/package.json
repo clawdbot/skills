@@ -1,0 +1,17 @@
+{
+  "name": "whoop-skill",
+  "version": "1.0.2",
+  "type": "module",
+  "scripts": {
+    "setup": "node src/setup.js",
+    "auth": "node src/auth.js",
+    "verify": "node src/verify.js",
+    "today": "node src/today.js",
+    "summary": "node src/summary.js",
+    "recovery": "node src/recovery.js",
+    "sleep": "node src/sleep.js",
+    "strain": "node src/strain.js",
+    "workouts": "node src/workouts.js",
+    "import-historical": "node src/import-historical.js"
+  }
+}

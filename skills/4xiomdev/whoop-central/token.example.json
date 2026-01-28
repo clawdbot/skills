@@ -1,0 +1,9 @@
+{
+  "access_token": "PASTE_ACCESS_TOKEN",
+  "refresh_token": "PASTE_REFRESH_TOKEN",
+  "expires_in": 3600,
+  "scope": "offline read:profile",
+  "token_type": "bearer",
+  "redirect_uri": "http://localhost:3000/callback",
+  "obtained_at": 1700000000000
+}
