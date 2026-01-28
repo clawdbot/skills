@@ -1,19 +1,32 @@
-# Secret Scanner
+# ai-secret-scan
 
-Scan your codebase for leaked secrets and API keys with one command.
+Scan your codebase for leaked secrets, API keys, and credentials. Pattern matching plus AI analysis.
 
-## Quick Start
+## Install
+
+```bash
+npm install -g ai-secret-scan
+```
+
+## Usage
 
 ```bash
 npx ai-secret-scan
+# Scans current directory
+
+npx ai-secret-scan ./src
+# Scans specific directory
+
+npx ai-secret-scan --no-ai
+# Pattern matching only, no AI
 ```
 
-Pattern matching plus optional AI analysis to catch what regex misses.
+## Setup
 
-## Links
+```bash
+export OPENAI_API_KEY=sk-...
+```
 
-- [MoltHub Page](https://clawdhub.com/lxgicstudios/secret-scanner)
-- [GitHub](https://github.com/LXGIC-Studios)
-- [Website](https://lxgic.dev)
+## License
 
-MIT License.
+MIT
