@@ -1,0 +1,27 @@
+{
+  "name": "moltbot-security",
+  "version": "1.0.0",
+  "description": "Security hardening guide for Moltbot/Clawdbot. Lock down gateway, fix permissions, set up auth, configure firewalls. Based on real vulnerability research.",
+  "main": "SKILL.md",
+  "keywords": [
+    "moltbot",
+    "clawdbot",
+    "security",
+    "hardening",
+    "gateway",
+    "firewall",
+    "tailscale",
+    "ssh",
+    "authentication",
+    "ai-agent",
+    "devops",
+    "infosec"
+  ],
+  "author": "tytaninc7",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/NextFrontierBuilds/moltbot-security"
+  },
+  "homepage": "https://github.com/NextFrontierBuilds/moltbot-security#readme"
+}
