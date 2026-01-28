@@ -1,0 +1,49 @@
+{
+  "name": "strykr-prism",
+  "version": "1.0.0",
+  "description": "Strykr PRISM API for canonical asset resolution, price lookups, token security scanning, and cross-market intelligence",
+  "author": {
+    "name": "Next Frontier",
+    "url": "https://x.com/NextXFrontier"
+  },
+  "repository": "https://github.com/NextFrontierBuilds/strykr-prism-skill",
+  "keywords": [
+    "strykr",
+    "prism",
+    "crypto",
+    "stocks",
+    "finance",
+    "trading",
+    "price",
+    "defi",
+    "security",
+    "token-analysis",
+    "market-data",
+    "asset-resolution"
+  ],
+  "config": {
+    "PRISM_API_KEY": {
+      "description": "Strykr PRISM API key",
+      "required": true,
+      "env": "PRISM_API_KEY"
+    },
+    "PRISM_URL": {
+      "description": "PRISM API base URL",
+      "default": "https://strykr-prism.up.railway.app"
+    }
+  },
+  "triggers": [
+    "price of {asset}",
+    "what's {asset} price",
+    "how much is {asset}",
+    "is {token} safe",
+    "check {token}",
+    "scan {address}",
+    "rug check {token}",
+    "market overview",
+    "what's trending",
+    "fear and greed"
+  ],
+  "platforms": ["macos", "linux", "windows"],
+  "category": "finance"
+}
