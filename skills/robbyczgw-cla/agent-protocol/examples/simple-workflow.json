@@ -1,0 +1,21 @@
+{
+  "workflow_id": "research-to-telegram",
+  "name": "Research Article → Telegram Notification",
+  "description": "When research agent finds an important article, notify via Telegram",
+  "enabled": true,
+  "trigger": {
+    "event_type": "research.article_found",
+    "conditions": {
+      "payload.importance": { "gte": 7 }
+    }
+  },
+  "steps": [
+    {
+      "agent": "notification-agent",
+      "action": "send_telegram",
+      "input": {
+        "message": "📰 New Research Article\n\n**{{payload.title}}**\n\nImportance: {{payload.importance}}/10\n{{payload.url}}"
+      }
+    }
+  ]
+}

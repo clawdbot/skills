@@ -1,0 +1,47 @@
+{
+  "name": "@clawdbot/agent-protocol",
+  "version": "1.0.0",
+  "description": "Agent-to-agent communication protocol for Clawdbot. Enables skills to publish events, subscribe to notifications, and build automated workflow chains.",
+  "keywords": [
+    "clawdbot",
+    "skill",
+    "agent-protocol",
+    "events",
+    "workflow",
+    "automation",
+    "orchestration",
+    "agent-to-agent"
+  ],
+  "author": "Robby <robbyczgw@gmail.com>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/robbyczgw-cla/agent-protocol.git"
+  },
+  "homepage": "https://github.com/robbyczgw-cla/agent-protocol",
+  "bugs": {
+    "url": "https://github.com/robbyczgw-cla/agent-protocol/issues"
+  },
+  "main": "scripts/protocol.js",
+  "scripts": {
+    "test": "echo \"No tests yet\" && exit 0"
+  },
+  "clawdbot": {
+    "skill": true,
+    "core": true,
+    "triggers": ["agent", "protocol", "workflow", "events"],
+    "capabilities": [
+      "event-bus",
+      "workflow-engine",
+      "agent-communication",
+      "orchestration"
+    ]
+  },
+  "files": [
+    "SKILL.md",
+    "README.md",
+    "scripts/",
+    "config/",
+    "examples/"
+  ]
+}

@@ -1,0 +1,22 @@
+{
+  "workflow_id": "goal-announcement",
+  "name": "Sports Goal → TTS Announcement",
+  "description": "Announce goals via text-to-speech when your team scores",
+  "enabled": true,
+  "trigger": {
+    "event_type": "sports.goal_scored",
+    "conditions": {
+      "payload.team": { "eq": "Barcelona" }
+    }
+  },
+  "steps": [
+    {
+      "agent": "tts-agent",
+      "action": "announce",
+      "input": {
+        "text": "Goal for Barcelona! {{payload.scorer}} scores in the {{payload.minute}}. The score is now {{payload.score}}!",
+        "voice": "excited"
+      }
+    }
+  ]
+}

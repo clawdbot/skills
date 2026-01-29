@@ -1,0 +1,19 @@
+{
+  "event_bus": {
+    "storage_path": "~/.clawdbot/events",
+    "retention_days": 7,
+    "max_event_size_kb": 512
+  },
+  "workflow_engine": {
+    "enabled": true,
+    "poll_interval_seconds": 30,
+    "max_concurrent_workflows": 5
+  },
+  "registry": {
+    "agents_path": "~/.clawdbot/agents/registry.json"
+  },
+  "security": {
+    "require_permissions": false,
+    "audit_log": true
+  }
+}

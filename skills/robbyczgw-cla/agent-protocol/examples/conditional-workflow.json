@@ -1,0 +1,42 @@
+{
+  "workflow_id": "priority-routing",
+  "name": "Priority-Based Routing",
+  "description": "Route alerts to different channels based on importance",
+  "enabled": true,
+  "trigger": {
+    "event_type": "alert.*"
+  },
+  "steps": [
+    {
+      "condition": {
+        "payload.priority": { "eq": "critical" }
+      },
+      "agent": "sms-notifier",
+      "action": "send_sms",
+      "input": {
+        "message": "🚨 CRITICAL: {{payload.message}}"
+      }
+    },
+    {
+      "condition": {
+        "payload.priority": { "eq": "high" }
+      },
+      "agent": "telegram-notifier",
+      "action": "send",
+      "input": {
+        "message": "⚠️ High Priority: {{payload.message}}"
+      }
+    },
+    {
+      "condition": {
+        "payload.priority": { "eq": "normal" }
+      },
+      "agent": "email-notifier",
+      "action": "send_email",
+      "input": {
+        "subject": "Alert: {{payload.title}}",
+        "body": "{{payload.message}}"
+      }
+    }
+  ]
+}

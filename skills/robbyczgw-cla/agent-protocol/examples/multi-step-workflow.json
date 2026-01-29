@@ -1,0 +1,41 @@
+{
+  "workflow_id": "research-summary-notify",
+  "name": "Research → Summary → Multi-Channel Notification",
+  "description": "Find article, summarize it, then notify via multiple channels",
+  "enabled": true,
+  "trigger": {
+    "event_type": "research.article_found",
+    "conditions": {
+      "payload.importance": { "gte": 8 }
+    }
+  },
+  "steps": [
+    {
+      "agent": "summary-agent",
+      "action": "summarize",
+      "input": {
+        "url": "{{payload.url}}",
+        "max_length": 200
+      },
+      "output_event": "summary.ready"
+    },
+    {
+      "parallel": [
+        {
+          "agent": "telegram-notifier",
+          "action": "send",
+          "input": {
+            "message": "📰 {{payload.title}}\n\n{{previous.summary}}\n\n{{payload.url}}"
+          }
+        },
+        {
+          "agent": "discord-notifier",
+          "action": "send",
+          "input": {
+            "message": "📰 **{{payload.title}}**\n\n{{previous.summary}}\n\n{{payload.url}}"
+          }
+        }
+      ]
+    }
+  ]
+}
