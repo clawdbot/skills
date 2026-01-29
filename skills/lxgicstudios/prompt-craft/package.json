@@ -1,0 +1,44 @@
+{
+  "name": "ai-prompt-craft",
+  "version": "1.0.0",
+  "description": "Transform basic prompts into elite structured prompts using Anthropic's 10-step framework",
+  "main": "index.js",
+  "bin": {
+    "ai-prompt-craft": "cli.js",
+    "prompt-craft": "cli.js"
+  },
+  "scripts": {
+    "test": "node cli.js --help"
+  },
+  "keywords": [
+    "ai",
+    "prompt",
+    "claude",
+    "anthropic",
+    "prompt-engineering",
+    "llm",
+    "chatgpt",
+    "gpt",
+    "prompt-builder",
+    "ai-tools"
+  ],
+  "author": "LXGIC Studios <lxgicstudios@gmail.com>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lxgic-studios/ai-prompt-craft.git"
+  },
+  "bugs": {
+    "url": "https://github.com/lxgic-studios/ai-prompt-craft/issues"
+  },
+  "homepage": "https://github.com/lxgic-studios/ai-prompt-craft#readme",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "files": [
+    "cli.js",
+    "index.js",
+    "README.md",
+    "SKILL.md"
+  ]
+}
