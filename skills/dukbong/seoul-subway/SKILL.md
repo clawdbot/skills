@@ -1,6 +1,6 @@
 ---
 name: seoul-subway
-description: Seoul Metro assistant for real-time arrivals, route planning, and service alerts (Korean/English)
+description: Seoul Subway assistant for real-time arrivals, route planning, and service alerts (Korean/English)
 metadata: {"moltbot":{"emoji":"🚇","requires":{"bins":["curl","jq"],"env":["SEOUL_OPENAPI_KEY","DATA_GO_KR_KEY"]},"primaryEnv":"SEOUL_OPENAPI_KEY"}}
 homepage: https://github.com/dukbong/seoul-subway
 user-invocable: true
@@ -8,7 +8,7 @@ user-invocable: true
 
 # Seoul Subway Skill
 
-Query real-time Seoul Metro information.
+Query real-time Seoul Subway information.
 
 ## Features
 
