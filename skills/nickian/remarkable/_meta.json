@@ -1,0 +1,11 @@
+{
+  "owner": "nickian",
+  "slug": "remarkable",
+  "displayName": "reMarkable Cloud",
+  "latest": {
+    "version": "1.1.0",
+    "publishedAt": 1769633947906,
+    "commit": null
+  },
+  "history": []
+}
