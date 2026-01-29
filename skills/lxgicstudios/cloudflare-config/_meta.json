@@ -1,0 +1,11 @@
+{
+  "owner": "lxgicstudios",
+  "slug": "cloudflare-config",
+  "displayName": "Cloudflare Config Generator",
+  "latest": {
+    "version": "1.0.1",
+    "publishedAt": 1769632262216,
+    "commit": null
+  },
+  "history": []
+}
