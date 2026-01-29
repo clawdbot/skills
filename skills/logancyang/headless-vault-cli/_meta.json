@@ -1,0 +1,11 @@
+{
+  "owner": "logancyang",
+  "slug": "headless-vault-cli",
+  "displayName": "Headless Vault CLI",
+  "latest": {
+    "version": "1.0.0",
+    "publishedAt": 1769658625422,
+    "commit": null
+  },
+  "history": []
+}
