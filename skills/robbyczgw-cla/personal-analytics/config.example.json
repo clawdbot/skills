@@ -1,0 +1,69 @@
+{
+  "enabled": true,
+  "tracking": {
+    "sessions": true,
+    "topics": true,
+    "sentiment": true,
+    "productivity": true
+  },
+  "privacy": {
+    "min_aggregation_window_hours": 24,
+    "auto_delete_after_days": 90,
+    "keep_aggregated_stats": true,
+    "exclude_patterns": [
+      "password",
+      "token",
+      "key",
+      "secret",
+      "api key",
+      "credit card",
+      "ssn"
+    ]
+  },
+  "insights": {
+    "productivity_markers": [
+      "completed",
+      "shipped",
+      "fixed",
+      "merged",
+      "deployed",
+      "resolved",
+      "closed",
+      "published",
+      "launched",
+      "released"
+    ],
+    "stress_indicators": [
+      "urgent",
+      "asap",
+      "critical",
+      "broken",
+      "emergency",
+      "help",
+      "stuck",
+      "frustrated"
+    ]
+  },
+  "reports": {
+    "weekly_day": "sunday",
+    "weekly_time": "20:00",
+    "auto_send": false,
+    "include_sections": [
+      "time_patterns",
+      "topic_insights",
+      "productivity",
+      "sentiment",
+      "recommendations"
+    ],
+    "exclude_topics": [],
+    "min_session_count": 5
+  },
+  "integrations": {
+    "proactive_research": {
+      "enabled": true,
+      "auto_suggest_topics": true,
+      "suggestion_threshold": 3,
+      "min_sessions_for_suggestion": 5
+    }
+  }
+}
