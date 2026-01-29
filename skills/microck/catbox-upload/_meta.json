@@ -1,0 +1,11 @@
+{
+  "owner": "microck",
+  "slug": "catbox-upload",
+  "displayName": "Upload files to catbox.moe (permanent) or litterbox.catbox.moe (temporary).",
+  "latest": {
+    "version": "1.0.0",
+    "publishedAt": 1769660845775,
+    "commit": null
+  },
+  "history": []
+}
