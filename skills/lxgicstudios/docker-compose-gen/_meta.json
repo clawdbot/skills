@@ -1,0 +1,11 @@
+{
+  "owner": "lxgicstudios",
+  "slug": "docker-compose-gen",
+  "displayName": "Docker Compose Generator",
+  "latest": {
+    "version": "1.0.1",
+    "publishedAt": 1769632409621,
+    "commit": null
+  },
+  "history": []
+}
